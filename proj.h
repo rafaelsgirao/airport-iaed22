@@ -6,7 +6,8 @@
 #define LIM_RAW_TIME 5+1
 #define MAX_AIRPORTS 40
 #define MAX_FLIGHTS 30000
-
+#define MIN_FLIGHT_CAP 10
+#define MAX_FLIGHT_CAP 100
 
 /*-------------------*/
 /*-----Structures----*/
@@ -15,8 +16,6 @@ typedef struct {
 	int day;
 	int month;
 	int year;
-	int hour;
-	int minute;
 } Date;
 
 typedef struct {
@@ -50,8 +49,20 @@ void addFlight();
 void handleVCommand();
 void listFlights();
 void listAirportFlights();
-void advanceDate();
+void setDate();
 Date getDate();
 
+/*date.c*/
+void printDate();
+Date readDate();
+/*military_time.c*/
+int readTime();
+void printTime();
 
 int compareDate(Date data1, Date data2);
+
+/*-------------------*/
+/*-----Messages------*/
+/*-------------------*/
+
+#define MSG_INVALID_FLIGHT_CODE "invalid flight code\n"

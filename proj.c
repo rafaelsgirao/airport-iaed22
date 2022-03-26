@@ -13,7 +13,7 @@
 /*-Global Variables--*/
 /*-------------------*/
 
-Date system_date = {1, 1, 2022, 0, 0};
+Date system_date = {1, 1, 2022};
 
 
 Airport airports[MAX_AIRPORTS];
@@ -41,7 +41,7 @@ int main() {
 			listAirportFlights();
 			break;
 		case 't':
-			advanceDate();
+			setDate();
 		}
 	}
 	return 0;
@@ -150,6 +150,7 @@ int check_airport_existence(char arprt_id[]) {
 	for (i=0;i<airport_count;i++) {
 		arprt = airports[i];
 		if (!strcmp(arprt_id, arprt.id)) {
+			/*printf("DEBUG: found airport %s\n", arprt_id);*/
 			return 1;
 		}
 	}
@@ -161,34 +162,41 @@ void addFlight() {
 	int i;
 	char flight_code[LIM_FLIGHT_CODE];
 	Flight flight;
-	char raw_departure_time[LIM_RAW_TIME], raw_duration_time[LIM_RAW_TIME];
-
 
 	scanf("%s%s%s", flight.code, flight.departure_id, flight.arrival_id);
-	flight.departure_date = getDate();
-	/*FIXME: process raw_departure_time*/
-	scanf("%s%s%d", raw_departure_time, raw_duration_time, &flight.capacity);
+	flight.departure_date = readDate();
+	/*FIXME: process raw_departure_time and raw_duration_time*/
+	getchar();
+	flight.departure_time = readTime();
+	getchar();
+	flight.duration = readTime();
+	scanf("%d", &flight.capacity);
 
-	for(i=0; i < LIM_FLIGHT_CODE; i++) {
+	for(i=0; i < LIM_FLIGHT_CODE && flight.code[i] != '\0'; i++) {
 		if(i < 2) {
 			if(!isupper(flight.code[i])) {
-				printf("invalid flight code\n");
+				printf(MSG_INVALID_FLIGHT_CODE);
+				printf("debug: '%c'\n", flight.code[i]);
+				return;
 			}
 		}
 		else {
 			if(!('0' <= flight.code[i] && flight.code[i] <= '9'))
 			{
-				printf("invalid flight code\n");
+				printf(MSG_INVALID_FLIGHT_CODE);
+				printf("debug: '%c', i='%d'\n", flight.code[i], i);
+				return;
 			}
 		}
 	}
-	
-	/*TODO: implement*/
+	/*TODO: finish implementing*/
 	for(i=0;i<flight_count;i++) {
 		flight = flight_store[i];
 		if(!strcmp(flight.code, flight_code)) {
-			if(0) /*FIXME: use compareDate*/
+			if(0) /*FIXME: use compareDate*/ {
 				printf("flight already exists\n");
+				return;
+			}
 		}
 	}
 
@@ -197,36 +205,100 @@ void addFlight() {
 		return;
 	}
 	if(!check_airport_existence(flight.arrival_id)) {
-		printf("%s: no such airport ID\n", flight.departure_id);
+		printf("%s: no such airport ID\n", flight.arrival_id);
 		return;
 	}
 	if (flight_count == MAX_FLIGHTS) {
 		printf("too many flights\n");
+		return;
 	}
+	/*TODO: check if date in past or more than year in future*/
+	if (!compareDate(system_date, flight.departure_date)) {
+		printf("invalid date\n");
+		return;
+	}
+	if(flight.duration > 1200) {
+		printf("invalid duration\n");
+		return;
+	}
+	if(!(MIN_FLIGHT_CAP <= flight.capacity && flight.capacity <= MAX_FLIGHT_CAP)) {
+		printf("invalid capacity\n");
+		printf("DEBUG: flight.capacity = '%d'\n", flight.capacity);
+		return;
+	}
+	flight_store[flight_count++] = flight; 
 	return;
 }
 
-void listFlights() {
-	char c;
-	int i;
-	Airport arprt;
+int readTime() {
+	/*int time;*/
+	/*Time to be read is of the format: 'HH:MM'*/
 
-	/*Case of command without arguments*/
-	if ((c = getchar()) == '\n') {
-		for(i=0;i < airport_count; i++) {
-			arprt = airports[i];
-			/*TODO: implement storing flight count for each airport*/
-			printf("%s %s %s %d\n", arprt.id, arprt.city, arprt.country, arprt.flight_count);
-		}
-		return;
+	char raw_time[LIM_RAW_TIME];
+	raw_time[0] = getchar();
+	raw_time[1] = getchar();
+	getchar(); /*discard ':' char*/
+	raw_time[2] = getchar();
+	raw_time[3] = getchar();
+	raw_time[4] = '\0';
+	raw_time[LIM_RAW_TIME-1] = '\0';
+/*	printf("DEBUG: raw_time = '%s'\n", raw_time);
+	time = atoi(raw_time);
+	printf("DEBUG: time = '%d'\n", time);*/
+	return atoi(raw_time);
+}
+
+void listFlights() {
+	int i;
+	Flight flight;
+	for(i=0; i < flight_count; i++) {
+		flight = flight_store[i];
+		/*TODO: implement storing flight count for each airport*/
+		printf("%s %s %s ", flight.code, flight.departure_id, flight.arrival_id);
+		printDate(flight.departure_date);
+		printf(" ");
+		printTime(flight.departure_time);
+		printf(" ");
+		printTime(flight.duration);
+		printf("\n");
 	}
+
 }
 void listAirportFlights() {
 	/*TODO: implement*/
 	return;
 }
 
-Date getDate() {
+
+/*
+	Functions for handling military time
+*/	
+void printTime(int time) {
+	int hour, minutes;
+	hour = time / 100;
+	minutes = time % 100;
+	/*handle hour*/
+	if (hour < 10) {
+		printf("0%d", hour);
+	}
+	else {
+		printf("%d", hour);
+	}
+	printf(":");
+	/*handle minutes*/
+	if (minutes < 10) {
+		printf("0%d", minutes);
+	}
+	else {
+		printf("%d", minutes);
+	}
+	return;
+}
+
+/*
+	Functions for handling Date struct
+*/
+Date readDate() {
 	/*Getchar in between fgets to consume dash character */
 	Date newdate;
 /*	char rawdate[LIM_DATE];*/
@@ -265,9 +337,12 @@ Date getDate() {
 */
 	return newdate;
 }
+void printDate(Date date) {
+	printf("%d-%d-%d", date.day, date.month, date.year);
+}
 
-void advanceDate() {
-	Date date = getDate();
+void setDate() {
+	Date date = readDate();
 /*	
 	scanf("%d%d%d", &date.day, &date.month, &date.year);
 	printf("date.day = '%d'\n", date.day);
