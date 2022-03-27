@@ -3,6 +3,13 @@
 	1st IAED Project 2021/2022
 */
 
+/*TODO:
+ * - run `indent` according to guidelines.pdf
+ * - Implement sorting of airports
+ * - Finish c and p command
+ * - Run `lizard`, check for errors
+ * - Comments
+ */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -253,10 +260,16 @@ void listFlights() {
 	}
 
 }
+
 void listAirportDepartures() {
+	/*
+	 * TODO: 'Os voos são ordenados da data e hora mais antigas para a mais recente.'
+	 */
 	char arprt_id[LIM_AIRPORT_ID];
-	int arprt_i;
+	int i, arprt_i;
 	Airport arprt;
+	Flight flight;
+
 	scanf("%s", arprt_id);
 	arprt_i = getAirport(arprt_id);
 	if (arprt_i == -1) {
@@ -266,15 +279,45 @@ void listAirportDepartures() {
 	/*airports[arprt_i] is safeguarded by check_airport_existence*/
 	arprt = airports[arprt_i];
 	printf("%s", arprt.id);
-
+	for (i=0 ; i < arprt.departure_count; i++) {
+		flight = flight_store[arprt.departures[i]];
+		printf("%s %s ", flight.code, arprt.id);
+		printDate(flight.departure_date);
+		printf(" ");
+		printTime(flight.departure_time);
+		printf("\n");
+	}
 	return;
 }
 
 void listAirportArrivals() {
-	/*TODO: implement*/
+	/*
+	 * TODO: 'Os voos são ordenados da data e hora mais antigas para a mais recente.'
+	 */
+	char arprt_id[LIM_AIRPORT_ID];
+	int i, arprt_i;
+	Airport arprt;
+	Flight flight;
+
+	scanf("%s", arprt_id);
+	arprt_i = getAirport(arprt_id);
+	if (arprt_i == -1) {
+		printf("%s: no such airport ID\n", arprt_id);
+		return;
+	}
+	/*airports[arprt_i] is safeguarded by check_airport_existence*/
+	arprt = airports[arprt_i];
+	printf("%s", arprt.id);
+	for (i=0 ; i < arprt.arrival_count; i++) {
+		flight = flight_store[arprt.arrivals[i]];
+		printf("%s %s ", flight.code, arprt.id);
+		printDate(flight.departure_date);
+		printf(" ");
+		printTime(flight.departure_time);
+		printf("\n");
+	}
 	return;
 }
-
 
 /*
 	Functions for handling military time
