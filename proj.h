@@ -39,12 +39,14 @@ typedef struct {
 	int capacity;
 
 } Flight;
-
+/*TODO: go through every function and order their prototypes
+ by order of appearance*/
 /*-------------------*/
 /*----Prototypes-----*/
 /*-------------------*/
 void addAirport();
 void listAirports();
+void sortAirports();
 int getAirport(char arprt_id[]);
 void addFlight();
 void handleVCommand();

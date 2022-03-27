@@ -24,6 +24,8 @@ Date system_date = {1, 1, 2022};
 
 
 Airport airports[MAX_AIRPORTS];
+/*Façade to simplify airport sorting*/
+int ordered_airport_store[MAX_AIRPORTS];
 int airport_count;
 Flight flight_store[MAX_FLIGHTS];
 int flight_count;
@@ -88,13 +90,13 @@ void addAirport() {
 	fgets(arprt.city, LIM_CITY_NAME, stdin);
 	/*Remove trailing \n*/
 	arprt.city[strlen(arprt.city) - 1] = '\0';
-	/*TODO: store the new airport, ordered alphabetically*/
 
 	airports[airport_count] = arprt;
 
 	/*airports[airport_count++] = arprt;*/
 	printf("airport %s\n", airports[airport_count].id);
-
+	ordered_airport_store[airport_count] = airport_count;
+	sortAirports();
 	airport_count++;
 	return;
 }
@@ -108,7 +110,8 @@ void listAirports() {
 	/*Case of command without arguments*/
 	if ((c = getchar()) == '\n') {
 		for(i=0;i < airport_count; i++) {
-			arprt = airports[i];
+/*			arprt = airports[i]; */
+			arprt = airports[ordered_airport_store[i]];
 			flight_count = arprt.departure_count + arprt.arrival_count;
 			printf("%s %s %s %d\n", arprt.id, arprt.city, arprt.country, flight_count);
 		}
@@ -136,17 +139,6 @@ void listAirports() {
 	return;
 }
 
-void handleVCommand() {
-	char c;
-	if ((c = getchar()) == '\n') {
-		listFlights();
-		return;
-	}
-	addFlight();
-
-	return;
-}
-
 int getAirport(char arprt_id[]) {
 	int i;
 	Airport arprt;
@@ -159,6 +151,72 @@ int getAirport(char arprt_id[]) {
 	}
 	return -1;
 }
+
+void sortAirports() {
+	/*
+	 Use bubble sort to sort the Airport façade
+	 */
+	int arprt_tmp_i;
+	Airport arprt_a, arprt_b;
+	int left, right, i, j;
+	left = 0;
+	right = airport_count;
+	for (i = left; i < right; i++) {
+		for (j = left; j < right + (left - i); j++) {
+/*			ordered_airport_store[j] = index in the store of the actual airport  */
+			arprt_a = airports[ordered_airport_store[j]];
+			arprt_b = airports[ordered_airport_store[j+1]];
+			if (strcmp(arprt_a.id, arprt_b.id) > 0) {
+				arprt_tmp_i = ordered_airport_store[j];
+				ordered_airport_store[j] = ordered_airport_store[j+1];
+				ordered_airport_store[j+1] = arprt_tmp_i;
+			}
+		}
+	}
+
+	return;
+}
+/*
+void bubble(Item a[], int left, int right)
+{
+    int i, j;
+    for (i = left; i < right; i++)
+        for (j = left; j < right + (left - i); j++)
+            compexch(a[j], a[j + 1]);
+}
+*/
+
+/*
+typedef int Item;
+ as barras permitem escrever em varias linhas
+ o que estamos a definir para não ficar tudo sobreposto
+
+#define key(A) (A)
+#define less(A, B) (key(A) < key(B))
+#define exch(A, B)  \
+    {               \
+        Item t = A; \
+        A = B;      \
+        B = t;      \
+    }
+
+#define compexch(A, B) \
+    if (less(B, A))    \
+    exch(A, B)
+*/
+
+
+void handleVCommand() {
+	char c;
+	if ((c = getchar()) == '\n') {
+		listFlights();
+		return;
+	}
+	addFlight();
+
+	return;
+}
+
 
 
 
@@ -182,7 +240,7 @@ void addFlight() {
 		if(i < 2) {
 			if(!isupper(flight.code[i])) {
 				printf(MSG_INVALID_FLIGHT_CODE);
-				printf("debug: '%c'\n", flight.code[i]);
+/*				printf("debug: '%c'\n", flight.code[i]);*/
 				return;
 			}
 		}
@@ -190,7 +248,7 @@ void addFlight() {
 			if(!('0' <= flight.code[i] && flight.code[i] <= '9'))
 			{
 				printf(MSG_INVALID_FLIGHT_CODE);
-				printf("debug: '%c', i='%d'\n", flight.code[i], i);
+/*				printf("debug: '%c', i='%d'\n", flight.code[i], i);*/
 				return;
 			}
 		}
@@ -386,17 +444,6 @@ Date readDate() {
 	rawyear[2] = getchar();
 	rawyear[3] = getchar();
 	rawyear[4] = '\0';
-
-/*
-	printf("rawday: %s\nrawmonth: %s\nrawyear: %s\n", rawday, rawmonth, rawyear);
-	Borked
-	fgets(rawday, 2+1, stdin);
-	getchar();
-	fgets(rawmonth, 2+1, stdin);
-	getchar();
-	fgets(rawday, 2+1, stdin);
-	getchar();
-	*/
 
 	newdate.day = atoi(rawday);
 	newdate.month = atoi(rawmonth);
