@@ -22,7 +22,7 @@ typedef struct {
 	char id[LIM_AIRPORT_ID];
 	char country[LIM_COUNTRY_NAME];
 	char city[LIM_CITY_NAME];
-	int flight_count;
+	int arrival_count, departure_count;
 	/*Array of ints to access flights in the flight store*/
 	int arrivals[MAX_FLIGHTS];
 	int departures[MAX_FLIGHTS];
@@ -45,10 +45,12 @@ typedef struct {
 /*-------------------*/
 void addAirport();
 void listAirports();
+int getAirport(char arprt_id[]);
 void addFlight();
 void handleVCommand();
 void listFlights();
-void listAirportFlights();
+void listAirportArrivals();
+void listAirportDepartures();
 void setDate();
 Date getDate();
 
