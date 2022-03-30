@@ -1,3 +1,7 @@
+/*
+	Rafael Girão - ist199309
+	1st IAED Project 2021/2022
+*/
 #define LIM_AIRPORT_ID 30+1
 #define LIM_COUNTRY_NAME 30+1
 #define LIM_CITY_NAME 50+1
