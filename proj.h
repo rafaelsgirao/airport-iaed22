@@ -53,12 +53,14 @@ void handleVCommand();
 void listFlights();
 void listAirportArrivals();
 void listAirportDepartures();
+void sortFlights(int flights[], int flight_count);
 void setDate();
-Date getDate();
 
 /*date.c*/
 void printDate();
 Date readDate();
+Date incDate(Date date);
+Date incDateAux(Date date, int month_days);
 /*military_time.c*/
 int readTime();
 void printTime();
