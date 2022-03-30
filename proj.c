@@ -387,7 +387,6 @@ void listAirportArrivals() {
 		}
 		else {
 			printDate(flight.departure_date);
-			printf(" ");
 		}
 		printf(" ");
 		printTime(addTime(flight.departure_time, flight.duration));
