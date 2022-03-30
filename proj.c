@@ -176,7 +176,6 @@ void sortAirports() {
 			}
 		}
 	}
-
 	return;
 }
 
@@ -220,8 +219,6 @@ void handleVCommand() {
 
 	return;
 }
-
-
 
 
 void addFlight() {
@@ -380,7 +377,7 @@ void listAirportArrivals() {
 		flight = flight_store[arprt.arrivals[i]];
 		printf("%s %s ", flight.code, flight.departure_id);
 		/*Check if flight arrives on the next day*/
-		if (flight.departure_time.hour + flight.duration.hour > 24) {
+		if (flight.departure_time.hour + flight.duration.hour >= 24) {
 			/*Arrival date is only different if flight arrives on next day's morning (max duration = 12h)*/
 			tmp_date = incDate(flight.departure_date);
 			printDate(tmp_date);
@@ -468,14 +465,14 @@ mTime addTime(mTime time1, mTime time2) {
 	/*Sum minutes*/
 	time.minute = time1.minute + time2.minute;
 	if (time.minute >= 60) {
-		time.minute = 0;
+		time.minute -= 60;
 		time.hour++;
 	}
 	time.hour += time1.hour + time2.hour;
 	if (time.hour >= 24) {
-		time.hour = 0;
+		time.hour -= 24;
 	}
-	/*TODO: implement carry*/
+	/*TODO: implement carry(?)*/
 	return time;
 }
 /*
