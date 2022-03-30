@@ -178,8 +178,10 @@ void sortAirports() {
 	}
 	return;
 }
-
-void sortFlights(int flights[], int flight_count) {
+/*
+ departures should be passed as 1 if we're sorting an airport's departures façade, 0 otherwise (sorting arrivals).
+*/
+void sortFlights(int flights[], int flight_count, int departures) {
 	/*
 	 Use bubble sort to sort the Flights façade
 	 */
@@ -194,11 +196,15 @@ void sortFlights(int flights[], int flight_count) {
 /*			ordered_airport_store[j] = index in the store of the actual airport  */
 			flight_a = flight_store[flights[j]];
 			flight_b = flight_store[flights[j+1]];
-			date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
-			time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
-			/*if (date_comparison < 0 || (date_comparison == 0 && flight_a.departure_time > flight_b.departure_time)) {*/
+			if (departures) {
+				date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
+				time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
+			}
+			else {
+				date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
+				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
+			}
 			if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
-/*			if (strcmp(arprt_a.id, arprt_b.id) > 0) {*/
 				flight_tmp_i = flights[j];
 				flights[j] = flights[j+1];
 				flights[j+1] = flight_tmp_i;
@@ -290,15 +296,26 @@ void addFlight() {
 		printf("invalid capacity\n");
 		return;
 	}
+	/*Calculate arrival date and time*/
+	/*Check if flight arrives on the next day*/
+	if (flight.departure_time.hour + flight.duration.hour >= 24) {
+		/*Arrival date is only different if flight arrives on next day's morning (max duration = 12h)*/
+		flight.arrival_date = incDate(flight.departure_date);
+	}
+	else {
+		flight.arrival_date = flight.departure_date;
+	}
+	flight.arrival_time = addTime(flight.departure_time, flight.duration);
+
 	/*Store flight*/
 	arprt_arrival = airports[arprt_arrival_i];
 	arprt_arrival.arrivals[arprt_arrival.arrival_count++] = flight_count;
 	arprt_departure = airports[arprt_departure_i];
 	arprt_departure.departures[arprt_departure.departure_count++] = flight_count;
 
-	/*Sort flight arrays*/
-	sortFlights(arprt_arrival.arrivals, arprt_arrival.arrival_count);
-	sortFlights(arprt_departure.departures, arprt_departure.departure_count);
+	/*Mark arrays as dirty for later sorting*/
+	arprt_arrival.arrival_dirty = 1;
+	arprt_departure.departure_dirty = 1;
 
 	flight_store[flight_count++] = flight;
 
@@ -339,10 +356,15 @@ void listAirportDepartures() {
 		printf("%s: no such airport ID\n", arprt_id);
 		return;
 	}
+
 	/*airports[arprt_i] is safeguarded by check_airport_existence*/
 	arprt = airports[arprt_i];
-/*	printf("'%s'AAAAAA\n", arprt.id);*/
-/*	printf("%s", arprt.id);*/
+	/*Sort airport's departure array if dirty*/
+	if (arprt.departure_dirty) {
+		sortFlights(arprt.departures, arprt.departure_count, 1);
+		arprt.departure_dirty = 0;
+		airports[arprt_i] = arprt;
+	}
 	for (i = 0 ; i < arprt.departure_count; i++) {
 		flight = flight_store[arprt.departures[i]];
 		printf("%s %s ", flight.code, flight.arrival_id);
@@ -362,8 +384,6 @@ void listAirportArrivals() {
 	int i, arprt_i;
 	Airport arprt;
 	Flight flight;
-	/*Temporary values in case they need to be "incremented"*/
-	Date tmp_date;
 
 	scanf("%s", arprt_id);
 	arprt_i = getAirport(arprt_id);
@@ -373,21 +393,23 @@ void listAirportArrivals() {
 	}
 	/*airports[arprt_i] is safeguarded by check_airport_existence*/
 	arprt = airports[arprt_i];
+
+	/*Sort airport's arrival array if dirty*/
+	if (arprt.arrival_dirty) {
+		sortFlights(arprt.arrivals, arprt.arrival_count, 0);
+		arprt.arrival_dirty = 0;
+		airports[arprt_i] = arprt;
+	}
+
 	for (i=0 ; i < arprt.arrival_count; i++) {
 		flight = flight_store[arprt.arrivals[i]];
 		printf("%s %s ", flight.code, flight.departure_id);
-		/*Check if flight arrives on the next day*/
-		if (flight.departure_time.hour + flight.duration.hour >= 24) {
-			/*Arrival date is only different if flight arrives on next day's morning (max duration = 12h)*/
-			tmp_date = incDate(flight.departure_date);
-			printDate(tmp_date);
-		}
-		else {
-			printDate(flight.departure_date);
-		}
+
+		printDate(flight.arrival_date);
 		printf(" ");
-		printTime(addTime(flight.departure_time, flight.duration));
+		printTime(flight.arrival_time);
 		printf("\n");
+
 	}
 	return;
 }

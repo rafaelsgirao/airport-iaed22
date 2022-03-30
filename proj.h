@@ -35,6 +35,10 @@ typedef struct {
 	/*Array of ints to access flights in the flight store*/
 	int arrivals[MAX_FLIGHTS];
 	int departures[MAX_FLIGHTS];
+	/*These are 1 if values have been added to arrays above since last sort, 0 otherwise*/
+	/*This way sorting only occurs if dirty is 1 and if a function is going to use the array*/
+	int arrival_dirty;
+	int departure_dirty;
 } Airport;
 
 typedef struct {
@@ -42,9 +46,11 @@ typedef struct {
 	char departure_id[LIM_AIRPORT_ID];
 	char arrival_id[LIM_AIRPORT_ID];
 	Date departure_date;
-	/*Time and duration are stored in military time format*/
+	/*TODO: this is redundant, attempt to minimize if memory limit exceeded in future*/
 	mTime departure_time;
 	mTime duration;
+	Date arrival_date;
+	mTime arrival_time;
 	int capacity;
 
 } Flight;
@@ -64,7 +70,7 @@ void handleVCommand();
 void listFlights();
 void listAirportArrivals();
 void listAirportDepartures();
-void sortFlights(int flights[], int flight_count);
+void sortFlights(int flights[], int flight_count, int departures);
 void setDate();
 
 /*date.c*/
