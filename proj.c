@@ -5,8 +5,6 @@
 
 /*TODO:
  * - run `indent` according to guidelines.pdf
- * - Implement sorting of airports
- * - Finish c and p command
  * - Run `lizard`, check for errors
  * - Comments
  */
@@ -157,7 +155,7 @@ int getAirport(char arprt_id[]) {
 
 void sortAirports() {
 	/*
-	 Use bubble sort to sort the Airport façade
+	 Use REVERSE bubble sort to sort the Airport façade
 	 */
 	int arprt_tmp_i;
 	Airport arprt_a, arprt_b;
@@ -178,10 +176,43 @@ void sortAirports() {
 	}
 	return;
 }
+
+void sortFlights(int flights[], int flight_count, int departures) {
+	/*Use insertion sort to sort a Flight façade*/
+    int i, j;
+	Flight flight_a, flight_b;
+	int left = 0, right = flight_count;
+	int date_comparison, time_comparison;
+    for (i = left + 1; i <= right; i++)
+    {
+        int v = flights[i]; /*var auxiliar para guardar o valor de a[i]*/
+        j = i - 1;
+        /*while (j >= left && less(v, a[j])) percorrer o vetor */
+
+			flight_a = flight_store[flights[j]];
+			flight_b = flight_store[flights[j+1]];
+			if (departures) {
+				date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
+				time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
+			}
+			else {
+				date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
+				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
+			}
+
+        while (j >= left && (date_comparison >= 0 || (date_comparison == 0 && time_comparison >=0))) /*percorrer o vetor */
+        {                                  /* até encontrar o elemento menor que v*/
+            flights[j + 1] = flights[j];               /*percorrer uma casa para a direita */
+            j--;
+        }
+        flights[j + 1] = v; /*guarda o valor na casa acima ao valor menor */
+    }
+}
+
 /*
  departures should be passed as 1 if we're sorting an airport's departures façade, 0 otherwise (sorting arrivals).
 */
-void sortFlights(int flights[], int flight_count, int departures) {
+void bubblesortFlights(int flights[], int flight_count, int departures) {
 	/*
 	 Use bubble sort to sort the Flights façade
 	 */
@@ -204,7 +235,7 @@ void sortFlights(int flights[], int flight_count, int departures) {
 				date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
 				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
 			}
-			if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
+			if (date_comparison >= 0 || (date_comparison == 0 && time_comparison >= 0)) {
 				flight_tmp_i = flights[j];
 				flights[j] = flights[j+1];
 				flights[j+1] = flight_tmp_i;
@@ -288,7 +319,7 @@ void addFlight() {
 		printf("invalid date\n");
 		return;
 	}
-	if(flight.duration.hour >= 12 && flight.duration.minute > 0) {
+	if((flight.duration.hour > 12) || (flight.duration.hour == 12 && flight.duration.minute > 0)) {
 		printf("invalid duration\n");
 		return;
 	}
@@ -296,6 +327,7 @@ void addFlight() {
 		printf("invalid capacity\n");
 		return;
 	}
+
 	/*Calculate arrival date and time*/
 	/*Check if flight arrives on the next day*/
 	if (flight.departure_time.hour + flight.duration.hour >= 24) {
@@ -307,15 +339,21 @@ void addFlight() {
 	}
 	flight.arrival_time = addTime(flight.departure_time, flight.duration);
 
+/*	printf("DEBUG: found flight code '%s'. Storing at pos '%d'\n", flight.code, flight_count);*/
+
 	/*Store flight*/
 	arprt_arrival = airports[arprt_arrival_i];
 	arprt_arrival.arrivals[arprt_arrival.arrival_count++] = flight_count;
 	arprt_departure = airports[arprt_departure_i];
 	arprt_departure.departures[arprt_departure.departure_count++] = flight_count;
 
-	/*Mark arrays as dirty for later sorting*/
+	/*Mark arrays as dirty for later sorting
 	arprt_arrival.arrival_dirty = 1;
-	arprt_departure.departure_dirty = 1;
+	arprt_departure.departure_dirty = 1; */
+
+	/*Sort flight arrays*/
+	sortFlights(arprt_arrival.arrivals, arprt_arrival.arrival_count, 0);
+	sortFlights(arprt_departure.departures, arprt_departure.departure_count, 1);
 
 	flight_store[flight_count++] = flight;
 
@@ -494,7 +532,6 @@ mTime addTime(mTime time1, mTime time2) {
 	if (time.hour >= 24) {
 		time.hour -= 24;
 	}
-	/*TODO: implement carry(?)*/
 	return time;
 }
 /*
