@@ -23,6 +23,11 @@ typedef struct {
 } Date;
 
 typedef struct {
+	int hour;
+	int minute;
+} mTime;
+
+typedef struct {
 	char id[LIM_AIRPORT_ID];
 	char country[LIM_COUNTRY_NAME];
 	char city[LIM_CITY_NAME];
@@ -38,11 +43,13 @@ typedef struct {
 	char arrival_id[LIM_AIRPORT_ID];
 	Date departure_date;
 	/*Time and duration are stored in military time format*/
-	int departure_time;
-	int duration;
+	mTime departure_time;
+	mTime duration;
 	int capacity;
 
 } Flight;
+
+
 /*TODO: go through every function and order their prototypes
  by order of appearance*/
 /*-------------------*/
@@ -65,11 +72,14 @@ void printDate();
 Date readDate();
 Date incDate(Date date);
 Date incDateAux(Date date, int month_days);
-/*military_time.c*/
-int readTime();
-void printTime();
-
 int compareDate(Date data1, Date data2);
+
+/*military_time.c*/
+mTime readTime();
+void printTime();
+mTime addTime(mTime time1, mTime time2);
+int compareTime(mTime time1, mTime time2);
+
 
 /*-------------------*/
 /*-----Messages------*/

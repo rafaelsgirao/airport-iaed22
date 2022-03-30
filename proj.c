@@ -186,7 +186,7 @@ void sortFlights(int flights[], int flight_count) {
 	 */
 	int flight_tmp_i;
 	int left, right, i, j;
-	int date_comparison;
+	int date_comparison, time_comparison;
 	Flight flight_a, flight_b;
 	left = 0;
 	right = flight_count;
@@ -196,7 +196,9 @@ void sortFlights(int flights[], int flight_count) {
 			flight_a = flight_store[flights[j]];
 			flight_b = flight_store[flights[j+1]];
 			date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
-			if (date_comparison < 0 || (date_comparison == 0 && flight_a.departure_time > flight_b.departure_time)) {
+			time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
+			/*if (date_comparison < 0 || (date_comparison == 0 && flight_a.departure_time > flight_b.departure_time)) {*/
+			if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
 /*			if (strcmp(arprt_a.id, arprt_b.id) > 0) {*/
 				flight_tmp_i = flights[j];
 				flights[j] = flights[j+1];
@@ -279,13 +281,11 @@ void addFlight() {
 	/*tmp_date is a Date one year into the future*/
 	/*if departure date is in the future relative to tmp_date (compareDate(...) < 0) , then it's invalid*/
 	tmp_date.year++;
-/*	tmp_date = incDate(tmp_date);*/
-	/*TODO: check if date in past or more than year in future*/
 	if (compareDate(system_date, flight.departure_date) < 0 || compareDate(flight.departure_date, tmp_date) < 0)  {
 		printf("invalid date\n");
 		return;
 	}
-	if(flight.duration > 1200) {
+	if(flight.duration.hour >= 12 && flight.duration.minute > 0) {
 		printf("invalid duration\n");
 		return;
 	}
@@ -380,18 +380,17 @@ void listAirportArrivals() {
 		flight = flight_store[arprt.arrivals[i]];
 		printf("%s %s ", flight.code, flight.departure_id);
 		/*Check if flight arrives on the next day*/
-		if (flight.departure_time + flight.duration >= 2400) {
+		if (flight.departure_time.hour + flight.duration.hour > 24) {
 			/*Arrival date is only different if flight arrives on next day's morning (max duration = 12h)*/
 			tmp_date = incDate(flight.departure_date);
 			printDate(tmp_date);
-			printf(" ");
-			printTime(flight.departure_time + flight.duration - 2400);
 		}
 		else {
 			printDate(flight.departure_date);
 			printf(" ");
-			printTime(flight.departure_time + flight.duration);
 		}
+		printf(" ");
+		printTime(addTime(flight.departure_time, flight.duration));
 		printf("\n");
 	}
 	return;
@@ -401,44 +400,85 @@ void listAirportArrivals() {
 	Functions for handling military time
 */
 
-int readTime() {
+mTime readTime() {
 	/*int time;*/
 	/*Time to be read is of the format: 'HH:MM'*/
 
-	char raw_time[LIM_RAW_TIME];
+	char raw_minute[LIM_RAW_TIME], raw_hour[LIM_RAW_TIME];
+	mTime time;
 
-	raw_time[0] = getchar();
-	raw_time[1] = getchar();
+	raw_hour[0] = getchar();
+	raw_hour[1] = getchar();
+	raw_hour[2] = '\0';
 	getchar(); /*discard ':' char*/
-	raw_time[2] = getchar();
-	raw_time[3] = getchar();
-	raw_time[4] = '\0';
-	raw_time[LIM_RAW_TIME-1] = '\0';
-	return atoi(raw_time);
+	raw_minute[0] = getchar();
+	raw_minute[1] = getchar();
+	raw_minute[2] = '\0';
+	time.hour = atoi(raw_hour);
+	time.minute = atoi(raw_minute);
+
+	return time;
 }
 
-void printTime(int time) {
-	int hour, minutes;
-	hour = time / 100;
-	minutes = time % 100;
+void printTime(mTime time) {
 	/*handle hour*/
-	if (hour < 10) {
-		printf("0%d", hour);
+	if (time.hour < 10) {
+		printf("0%d", time.hour);
 	}
 	else {
-		printf("%d", hour);
+		printf("%d", time.hour);
 	}
 	printf(":");
 	/*handle minutes*/
-	if (minutes < 10) {
-		printf("0%d", minutes);
+	if (time.minute < 10) {
+		printf("0%d", time.minute);
 	}
 	else {
-		printf("%d", minutes);
+		printf("%d", time.minute);
 	}
 	return;
 }
 
+/*
+	Returns 1 if time2 is in the future relatively to time1
+	(time2 - time1 > 0)
+	0 if times are equal
+	-1 if time2 is in past relative to time1
+*/
+int compareTime(mTime time1, mTime time2) {
+	/*Compare hour*/
+	if (time2.hour - time1.hour > 0) {
+		return 1;
+	}
+	else if (time2.hour - time1.hour < 0) {
+		return -1;
+	}
+	/*Compare minute*/
+	if (time2.hour - time1.hour > 0) {
+		return 1;
+	}
+	else if (time2.hour - time1.hour < 0) {
+		return -1;
+	}
+	/*Times are equal */
+	return 0;
+}
+
+mTime addTime(mTime time1, mTime time2) {
+	mTime time = {0, 0};
+	/*Sum minutes*/
+	time.minute = time1.minute + time2.minute;
+	if (time.minute >= 60) {
+		time.minute = 0;
+		time.hour++;
+	}
+	time.hour += time1.hour + time2.hour;
+	if (time.hour >= 24) {
+		time.hour = 0;
+	}
+	/*TODO: implement carry*/
+	return time;
+}
 /*
 	Functions for handling Date struct
 */
@@ -465,13 +505,9 @@ Date readDate() {
 	newdate.day = atoi(rawday);
 	newdate.month = atoi(rawmonth);
 	newdate.year = atoi(rawyear);
-/*
-	printf("rawday: %s\nrawmonth: %s\nrawyear: %s\n", rawday, rawmonth, rawyear);
-*/
 	return newdate;
 }
 void printDate(Date date) {
-/*	printf("%s-%d-%d", day, date.month, date.year); */
 	if (date.day < 10)
 		printf("0%d-", date.day);
 	else
@@ -506,7 +542,6 @@ void setDate() {
 	0 if both dates are equal
 	-1 if date2 is in past relative to date1
 */
-/*FIXME: I'm not confident this works as intended*/
 int compareDate(Date date1, Date date2) {
 	/*Comparar ano*/
 	if (date2.year - date1.year > 0) {
