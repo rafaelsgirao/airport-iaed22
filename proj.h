@@ -70,6 +70,8 @@ void handleVCommand();
 void listFlights();
 void listAirportArrivals();
 void listAirportDepartures();
+void mergeSortFlights(int flights[], int left, int right, int departures);
+void merge(int flights[], int left, int m, int right, int departures);
 void sortFlights(int flights[], int flight_count, int departures);
 void setDate();
 

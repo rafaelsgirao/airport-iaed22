@@ -152,10 +152,56 @@ int getAirport(char arprt_id[]) {
 	}
 	return -1;
 }
+/*
+	Use merge sort to sort flights
+*/
+void mergeSortFlights(int flights[], int left, int right, int departures)
+{
+    int m = (right + left) / 2;
+    if (right <= left)
+        return;
+    mergeSortFlights(flights, left, m, departures);
+    mergeSortFlights(flights, m + 1, right, departures);
+    merge(flights, left, m, right, departures);
+}
+/* Auxiliary function for merge sort*/
+int sort_aux[MAX_FLIGHTS];
+
+/*
+ departures should be passed as 1 if we're sorting an airport's departures façade, 0 otherwise (sorting arrivals).
+*/
+void merge(int flights[], int left, int m, int right, int departures)
+{
+	int date_comparison, time_comparison;
+	Flight flight_j, flight_i;
+    int i, j, k;
+    for (i = m + 1; i > left; i--)
+        sort_aux[i - 1] = flights[i - 1];
+    for (j = m; j < right; j++)
+        sort_aux[right + m - j] = flights[j + 1];
+    for (k = left; k <= right; k++) {
+		flight_j = flight_store[sort_aux[j]];
+		flight_i = flight_store[sort_aux[i]];
+        if (departures) {
+            date_comparison = compareDate(flight_j.departure_date, flight_i.departure_date);
+            time_comparison = compareTime(flight_j.departure_time, flight_i.departure_time);
+        }
+        else {
+            date_comparison = compareDate(flight_j.arrival_date, flight_i.arrival_date);
+            time_comparison = compareTime(flight_j.arrival_time, flight_i.arrival_time);
+        }
+		/*Equivalent to less(flight_j, flight_i)*/
+		if (date_comparison > 0 || (date_comparison == 0 && time_comparison > 0) || i == m + 1)
+/*        if (less(sort_aux[j], sort_aux[i]) || i == m + 1) */
+            flights[k] = sort_aux[j--];
+        else
+            flights[k] = sort_aux[i++];
+	}
+}
 
 void sortAirports() {
 	/*
-	 Use REVERSE bubble sort to sort the Airport façade
+	 Use bubble sort to sort the Airport façade
 	 */
 	int arprt_tmp_i;
 	Airport arprt_a, arprt_b;
@@ -177,7 +223,7 @@ void sortAirports() {
 	return;
 }
 
-void sortFlights(int flights[], int flight_count, int departures) {
+void insertionsortFlights(int flights[], int flight_count, int departures) {
 	/*Use insertion sort to sort a Flight façade*/
 	int i, j;
 	Flight flight_a, flight_b;
@@ -235,7 +281,7 @@ void bubblesortFlights(int flights[], int flight_count, int departures) {
 				date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
 				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
 			}
-			if (date_comparison >= 0 || (date_comparison == 0 && time_comparison >= 0)) {
+			if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
 				flight_tmp_i = flights[j];
 				flights[j] = flights[j+1];
 				flights[j+1] = flight_tmp_i;
@@ -347,13 +393,15 @@ void addFlight() {
 	arprt_departure = airports[arprt_departure_i];
 	arprt_departure.departures[arprt_departure.departure_count++] = flight_count;
 
-	/*Mark arrays as dirty for later sorting
+/*	Mark arrays as dirty for later sorting*/
 	arprt_arrival.arrival_dirty = 1;
-	arprt_departure.departure_dirty = 1; */
+	arprt_departure.departure_dirty = 1;
 
 	/*Sort flight arrays*/
+	/*
 	sortFlights(arprt_arrival.arrivals, arprt_arrival.arrival_count, 0);
 	sortFlights(arprt_departure.departures, arprt_departure.departure_count, 1);
+	*/
 
 	flight_store[flight_count++] = flight;
 
@@ -399,7 +447,8 @@ void listAirportDepartures() {
 	arprt = airports[arprt_i];
 	/*Sort airport's departure array if dirty*/
 	if (arprt.departure_dirty) {
-		sortFlights(arprt.departures, arprt.departure_count, 1);
+		mergeSortFlights(arprt.departures, 0, arprt.departure_count, 1);
+/*		sortFlights(arprt.departures, arprt.departure_count, 1);*/
 		arprt.departure_dirty = 0;
 		airports[arprt_i] = arprt;
 	}
@@ -434,7 +483,8 @@ void listAirportArrivals() {
 
 	/*Sort airport's arrival array if dirty*/
 	if (arprt.arrival_dirty) {
-		sortFlights(arprt.arrivals, arprt.arrival_count, 0);
+		mergeSortFlights(arprt.arrivals, 0, arprt.arrival_count, 0);
+		/*sortFlights(arprt.arrivals, arprt.arrival_count, 0);*/
 		arprt.arrival_dirty = 0;
 		airports[arprt_i] = arprt;
 	}
