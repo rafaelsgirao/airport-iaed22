@@ -227,6 +227,7 @@ void addFlight() {
 	Flight flight, flight_i;
 	int arprt_arrival_i, arprt_departure_i;
 	Airport arprt_arrival, arprt_departure;
+	Date tmp_date = system_date;
 
 	scanf("%s%s%s", flight.code, flight.departure_id, flight.arrival_id);
 	flight.departure_date = readDate();
@@ -236,7 +237,7 @@ void addFlight() {
 	flight.duration = readTime();
 	scanf("%d", &flight.capacity);
 
-	for(i=0; i < LIM_FLIGHT_CODE && flight.code[i] != '\0'; i++) {
+	for(i = 0; i < LIM_FLIGHT_CODE && flight.code[i] != '\0'; i++) {
 		if(i < 2) {
 			if(!isupper(flight.code[i])) {
 				printf(MSG_INVALID_FLIGHT_CODE);
@@ -275,8 +276,12 @@ void addFlight() {
 		printf("too many flights\n");
 		return;
 	}
+	/*tmp_date is a Date one year into the future*/
+	/*if departure date is in the future relative to tmp_date (compareDate(...) < 0) , then it's invalid*/
+	tmp_date.year++;
+/*	tmp_date = incDate(tmp_date);*/
 	/*TODO: check if date in past or more than year in future*/
-	if (compareDate(system_date, flight.departure_date) < 0) {
+	if (compareDate(system_date, flight.departure_date) < 0 || compareDate(flight.departure_date, tmp_date) < 0)  {
 		printf("invalid date\n");
 		return;
 	}
@@ -343,7 +348,7 @@ void listAirportDepartures() {
 /*	printf("%s", arprt.id);*/
 	for (i = 0 ; i < arprt.departure_count; i++) {
 		flight = flight_store[arprt.departures[i]];
-		printf("%s %s ", flight.code, arprt.id);
+		printf("%s %s ", flight.code, flight.arrival_id);
 		printDate(flight.departure_date);
 		printf(" ");
 		printTime(flight.departure_time);
