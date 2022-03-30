@@ -179,15 +179,15 @@ void sortAirports() {
 
 void sortFlights(int flights[], int flight_count, int departures) {
 	/*Use insertion sort to sort a Flight façade*/
-    int i, j;
+	int i, j;
 	Flight flight_a, flight_b;
 	int left = 0, right = flight_count;
 	int date_comparison, time_comparison;
-    for (i = left + 1; i <= right; i++)
-    {
-        int v = flights[i]; /*var auxiliar para guardar o valor de a[i]*/
-        j = i - 1;
-        /*while (j >= left && less(v, a[j])) percorrer o vetor */
+	for (i = left + 1; i <= right; i++)
+	{
+		int v = flights[i]; /*var auxiliar para guardar o valor de a[i]*/
+		j = i - 1;
+		/*while (j >= left && less(v, a[j])) percorrer o vetor */
 
 			flight_a = flight_store[flights[j]];
 			flight_b = flight_store[flights[j+1]];
@@ -200,13 +200,13 @@ void sortFlights(int flights[], int flight_count, int departures) {
 				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
 			}
 
-        while (j >= left && (date_comparison >= 0 || (date_comparison == 0 && time_comparison >=0))) /*percorrer o vetor */
-        {                                  /* até encontrar o elemento menor que v*/
-            flights[j + 1] = flights[j];               /*percorrer uma casa para a direita */
-            j--;
-        }
-        flights[j + 1] = v; /*guarda o valor na casa acima ao valor menor */
-    }
+		while (j >= left && (date_comparison >= 0 || (date_comparison == 0 && time_comparison >=0))) /*percorrer o vetor */
+		{								   /* até encontrar o elemento menor que v*/
+			flights[j + 1] = flights[j];			   /*percorrer uma casa para a direita */
+			j--;
+		}
+		flights[j + 1] = v; /*guarda o valor na casa acima ao valor menor */
+	}
 }
 
 /*
