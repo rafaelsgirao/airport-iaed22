@@ -61,6 +61,7 @@ int main() {
 
 void addAirport() {
 	Airport arprt;
+	char *newline_ptr;
 	int i = 0;
 	arprt.arrival_count = 0;
 	arprt.departure_count = 0;
@@ -73,7 +74,10 @@ void addAirport() {
 	/*Read Airport city, can be a string with spaces*/
 	fgets(arprt.city, LIM_CITY_NAME, stdin);
 	/*Remove trailing \n*/
-	arprt.city[strlen(arprt.city) - 1] = '\0';
+/*	arprt.city[strlen(arprt.city) - 1] = '\0';*/
+	if ((newline_ptr = strchr(arprt.city, '\n')) != NULL) {
+			*newline_ptr = '\0';
+		}
 
 	while (arprt.id[i] != '\0') {
 		if (!isupper(arprt.id[i++])) {
@@ -114,7 +118,7 @@ void listAirports() {
 		for(i=0;i < airport_count; i++) {
 /*			arprt = airports[i]; */
 			arprt = airports[ordered_airport_store[i]];
-			flight_count = arprt.departure_count + arprt.arrival_count;
+			flight_count = arprt.departure_count;
 			printf("%s %s %s %d\n", arprt.id, arprt.city, arprt.country, flight_count);
 		}
 		return;
@@ -126,7 +130,7 @@ void listAirports() {
 			for(i=0; i < airport_count; i++) {
 				arprt = airports[i];
 				if (!strcmp(arprt_id, arprt.id)) {
-					flight_count = arprt.departure_count + arprt.arrival_count;
+					flight_count = arprt.departure_count;
 					printf("%s %s %s %d\n", arprt.id, arprt.city, arprt.country, flight_count);
 					found_airport = 1;
 				}
@@ -397,7 +401,7 @@ void addFlight() {
 
 	/*Calculate arrival date and time*/
 	/*Check if flight arrives on the next day*/
-	if (flight.departure_time.hour + flight.duration.hour >= 24) {
+	if (flight.departure_time.hour + flight.duration.hour >= 24 || (flight.departure_time.hour + flight.duration.hour >= 23 && flight.departure_time.minute + flight.duration.minute > 60)) {
 		/*Arrival date is only different if flight arrives on next day's morning (max duration = 12h)*/
 		flight.arrival_date = incDate(flight.departure_date);
 	}
@@ -589,6 +593,7 @@ int compareTime(mTime time1, mTime time2) {
 mTime addTime(mTime time1, mTime time2) {
 	mTime time = {0, 0};
 	/*Sum minutes*/
+	fprintf(stderr, "DEBUG: time1=%d:%d, time2=%d:%d\n", time1.hour, time1.minute, time2.hour, time2.minute);
 	time.minute = time1.minute + time2.minute;
 	if (time.minute >= 60) {
 		time.minute -= 60;
@@ -600,6 +605,7 @@ mTime addTime(mTime time1, mTime time2) {
 	}
 	return time;
 }
+
 /*
 	Functions for handling Date struct
 */
@@ -686,7 +692,7 @@ int compareDate(Date date1, Date date2) {
 	else if(date2.day - date1.day < 0) {
 		return -1;
 	}
-	/*Datas são iguais */
+	/*Dates are the same*/
 	return 0;
 }
 
@@ -712,6 +718,7 @@ Date incDate(Date date) {
 }
 
 Date incDateAux(Date date, int month_days) {
+	fprintf(stderr, "DEBUG: date.day=%d, date.month=%d, date.year=%d", date.day, date.month, date.year);
 	if (date.day < month_days) {
 		date.day++;
 	}
