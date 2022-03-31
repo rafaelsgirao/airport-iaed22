@@ -21,12 +21,13 @@
 Date system_date = {1, 1, 2022};
 
 
+/*FIXME comment global vars*/
 Airport airports[MAX_AIRPORTS];
 /*Façade to simplify airport sorting*/
 int ordered_airport_store[MAX_AIRPORTS];
-int airport_count;
+int airport_count=0;
 Flight flight_store[MAX_FLIGHTS];
-int flight_count;
+int flight_count=0;
 
 /*-------------------*/
 /*-----Functions-----*/
@@ -152,6 +153,7 @@ int getAirport(char arprt_id[]) {
 	}
 	return -1;
 }
+
 /*
 	Use merge sort to sort flights
 */
@@ -164,7 +166,7 @@ void mergeSortFlights(int flights[], int left, int right, int departures)
     mergeSortFlights(flights, m + 1, right, departures);
     merge(flights, left, m, right, departures);
 }
-/* Auxiliary function for merge sort*/
+/* Auxiliary array for merge sort*/
 int sort_aux[MAX_FLIGHTS];
 
 /*
@@ -180,6 +182,7 @@ void merge(int flights[], int left, int m, int right, int departures)
     for (j = m; j < right; j++)
         sort_aux[right + m - j] = flights[j + 1];
     for (k = left; k <= right; k++) {
+/*		printf("DEBUG: sort_aux[j]=%d; sort_aux[i]=%d; flight_count='%d'; departures=%d\n", sort_aux[j], sort_aux[i], flight_count, departures);*/
 		flight_j = flight_store[sort_aux[j]];
 		flight_i = flight_store[sort_aux[i]];
         if (departures) {
@@ -255,40 +258,58 @@ void insertionsortFlights(int flights[], int flight_count, int departures) {
 	}
 }
 
+int compareFlights(Flight flight_a, Flight flight_b, int departures) {
+	int date_comparison, time_comparison;
+	if (departures) {
+		date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
+		time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
+	}
+	else {
+		date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
+		time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
+	}
+
+	if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
+		return -1;
+	}
+	return 1;
+
+}
 /*
  departures should be passed as 1 if we're sorting an airport's departures façade, 0 otherwise (sorting arrivals).
 */
-void bubblesortFlights(int flights[], int flight_count, int departures) {
+void bubbleSortFlights(int flights[], int flight_count, int departures) {
 	/*
 	 Use bubble sort to sort the Flights façade
 	 */
 	int flight_tmp_i;
 	int left, right, i, j;
-	int date_comparison, time_comparison;
+	int done;
 	Flight flight_a, flight_b;
 	left = 0;
 	right = flight_count;
-	for (i = left; i < right; i++) {
-		for (j = left; j < right + (left - i); j++) {
+	for (i = 1; i < flight_count; i++) {
+		done = 1;
+/*		printf("DEBUG: i='%d'\n", i); */
+		for (j = left; j < right - 1; j++) {
 /*			ordered_airport_store[j] = index in the store of the actual airport  */
 			flight_a = flight_store[flights[j]];
+/*			printf("DEBUG: flight_count=%d, j+1=%d \n", flight_count, j+1);*/
 			flight_b = flight_store[flights[j+1]];
-			if (departures) {
-				date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
-				time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
-			}
-			else {
-				date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
-				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
-			}
-			if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
+/*			fprintf(stderr, "DEBUG: flight_a=%s , flight_b=%s , j=%d\n", flight_a.code, flight_b.code, j);*/
+			if(compareFlights(flight_a, flight_b, departures) == -1) {
+/*				fprintf(stderr, "DEBUG: Switched %s with %s\n", flight_a.code, flight_b.code);*/
+				done = 0;
 				flight_tmp_i = flights[j];
 				flights[j] = flights[j+1];
 				flights[j+1] = flight_tmp_i;
 			}
 		}
+		if (done) {
+			return;
+		}
+		--right;
 	}
-
 	return;
 }
 
@@ -308,7 +329,7 @@ void addFlight() {
 	int i;
 	Flight flight, flight_i;
 	int arprt_arrival_i, arprt_departure_i;
-	Airport arprt_arrival, arprt_departure;
+	Airport *arprt_arrival, *arprt_departure;
 	Date tmp_date = system_date;
 
 	scanf("%s%s%s", flight.code, flight.departure_id, flight.arrival_id);
@@ -388,27 +409,22 @@ void addFlight() {
 /*	printf("DEBUG: found flight code '%s'. Storing at pos '%d'\n", flight.code, flight_count);*/
 
 	/*Store flight*/
-	arprt_arrival = airports[arprt_arrival_i];
-	arprt_arrival.arrivals[arprt_arrival.arrival_count++] = flight_count;
-	arprt_departure = airports[arprt_departure_i];
-	arprt_departure.departures[arprt_departure.departure_count++] = flight_count;
+	arprt_arrival = &airports[arprt_arrival_i];
+	arprt_arrival->arrivals[arprt_arrival->arrival_count++] = flight_count;
+	arprt_departure = &airports[arprt_departure_i];
+	arprt_departure->departures[arprt_departure->departure_count++] = flight_count;
 
-/*	Mark arrays as dirty for later sorting*/
-	arprt_arrival.arrival_dirty = 1;
-	arprt_departure.departure_dirty = 1;
+	/*	Mark arrays as dirty for later sorting*/
+	arprt_arrival->arrival_dirty = 1;
+	arprt_departure->departure_dirty = 1;
 
 	/*Sort flight arrays*/
 	/*
-	sortFlights(arprt_arrival.arrivals, arprt_arrival.arrival_count, 0);
-	sortFlights(arprt_departure.departures, arprt_departure.departure_count, 1);
+	sortFlights(arprt_arrival->arrivals, arprt_arrival->arrival_count, 0);
+	sortFlights(arprt_departure->departures, arprt_departure->departure_count, 1);
 	*/
 
 	flight_store[flight_count++] = flight;
-
-	/*Store updated airports*/
-	airports[arprt_departure_i] = arprt_departure;
-	airports[arprt_arrival_i] = arprt_arrival;
-
 	return;
 }
 
@@ -447,8 +463,8 @@ void listAirportDepartures() {
 	arprt = airports[arprt_i];
 	/*Sort airport's departure array if dirty*/
 	if (arprt.departure_dirty) {
-		mergeSortFlights(arprt.departures, 0, arprt.departure_count, 1);
-/*		sortFlights(arprt.departures, arprt.departure_count, 1);*/
+/*		mergeSortFlights(arprt.departures, 0, arprt.departure_count, 1);*/
+		bubbleSortFlights(arprt.departures, arprt.departure_count, 1);
 		arprt.departure_dirty = 0;
 		airports[arprt_i] = arprt;
 	}
@@ -483,8 +499,8 @@ void listAirportArrivals() {
 
 	/*Sort airport's arrival array if dirty*/
 	if (arprt.arrival_dirty) {
-		mergeSortFlights(arprt.arrivals, 0, arprt.arrival_count, 0);
-		/*sortFlights(arprt.arrivals, arprt.arrival_count, 0);*/
+		/*mergeSortFlights(arprt.arrivals, 0, arprt.arrival_count, 0);*/
+		bubbleSortFlights(arprt.arrivals, arprt.arrival_count, 0);
 		arprt.arrival_dirty = 0;
 		airports[arprt_i] = arprt;
 	}
@@ -560,10 +576,10 @@ int compareTime(mTime time1, mTime time2) {
 		return -1;
 	}
 	/*Compare minute*/
-	if (time2.hour - time1.hour > 0) {
+	if (time2.minute - time1.minute > 0) {
 		return 1;
 	}
-	else if (time2.hour - time1.hour < 0) {
+	else if (time2.minute - time1.minute < 0) {
 		return -1;
 	}
 	/*Times are equal */
@@ -686,7 +702,7 @@ Date incDate(Date date) {
 			date = incDateAux(date, 31);
 			break;
 		case 2:
-			date = incDateAux(date, 29);
+			date = incDateAux(date, 28);
 			break;
 		default:
 			date = incDateAux(date, 30);
