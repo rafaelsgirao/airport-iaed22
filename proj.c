@@ -73,8 +73,7 @@ void addAirport() {
 	getchar();
 	/*Read Airport city, can be a string with spaces*/
 	fgets(arprt.city, LIM_CITY_NAME, stdin);
-	/*Remove trailing \n*/
-/*	arprt.city[strlen(arprt.city) - 1] = '\0';*/
+
 	if ((newline_ptr = strchr(arprt.city, '\n')) != NULL) {
 			*newline_ptr = '\0';
 		}
@@ -230,47 +229,16 @@ void sortAirports() {
 	return;
 }
 
-void insertionsortFlights(int flights[], int flight_count, int departures) {
-	/*Use insertion sort to sort a Flight façade*/
-	int i, j;
-	Flight flight_a, flight_b;
-	int left = 0, right = flight_count;
-	int date_comparison, time_comparison;
-	for (i = left + 1; i <= right; i++)
-	{
-		int v = flights[i]; /*var auxiliar para guardar o valor de a[i]*/
-		j = i - 1;
-		/*while (j >= left && less(v, a[j])) percorrer o vetor */
 
-			flight_a = flight_store[flights[j]];
-			flight_b = flight_store[flights[j+1]];
-			if (departures) {
-				date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
-				time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
-			}
-			else {
-				date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
-				time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
-			}
-
-		while (j >= left && (date_comparison >= 0 || (date_comparison == 0 && time_comparison >=0))) /*percorrer o vetor */
-		{								   /* até encontrar o elemento menor que v*/
-			flights[j + 1] = flights[j];			   /*percorrer uma casa para a direita */
-			j--;
-		}
-		flights[j + 1] = v; /*guarda o valor na casa acima ao valor menor */
-	}
-}
-
-int compareFlights(Flight flight_a, Flight flight_b, int departures) {
+int compareFlights(Flight *flight_a, Flight *flight_b, int departures) {
 	int date_comparison, time_comparison;
 	if (departures) {
-		date_comparison = compareDate(flight_a.departure_date, flight_b.departure_date);
-		time_comparison = compareTime(flight_a.departure_time, flight_b.departure_time);
+		date_comparison = compareDate(flight_a->departure_date, flight_b->departure_date);
+		time_comparison = compareTime(flight_a->departure_time, flight_b->departure_time);
 	}
 	else {
-		date_comparison = compareDate(flight_a.arrival_date, flight_b.arrival_date);
-		time_comparison = compareTime(flight_a.arrival_time, flight_b.arrival_time);
+		date_comparison = compareDate(flight_a->arrival_date, flight_b->arrival_date);
+		time_comparison = compareTime(flight_a->arrival_time, flight_b->arrival_time);
 	}
 
 	if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
@@ -289,7 +257,7 @@ void bubbleSortFlights(int flights[], int flight_count, int departures) {
 	int flight_tmp_i;
 	int left, right, i, j;
 	int done;
-	Flight flight_a, flight_b;
+	Flight *flight_a, *flight_b;
 	left = 0;
 	right = flight_count;
 	for (i = 1; i < flight_count; i++) {
@@ -297,9 +265,9 @@ void bubbleSortFlights(int flights[], int flight_count, int departures) {
 /*		printf("DEBUG: i='%d'\n", i); */
 		for (j = left; j < right - 1; j++) {
 /*			ordered_airport_store[j] = index in the store of the actual airport  */
-			flight_a = flight_store[flights[j]];
+			flight_a = &flight_store[flights[j]];
 /*			printf("DEBUG: flight_count=%d, j+1=%d \n", flight_count, j+1);*/
-			flight_b = flight_store[flights[j+1]];
+			flight_b = &flight_store[flights[j+1]];
 /*			fprintf(stderr, "DEBUG: flight_a=%s , flight_b=%s , j=%d\n", flight_a.code, flight_b.code, j);*/
 			if(compareFlights(flight_a, flight_b, departures) == -1) {
 /*				fprintf(stderr, "DEBUG: Switched %s with %s\n", flight_a.code, flight_b.code);*/
