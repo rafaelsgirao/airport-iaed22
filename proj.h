@@ -74,8 +74,8 @@ void merge(int flights[], int left, int m, int right, int departures);
 void sortFlights(int flights[], int flight_count, int departures);
 void setDate();
 
-/*date.c*/
-void printDate();
+/*datestruct.c*/
+void printDate(Date date);
 Date readDate();
 Date incDate(Date date);
 Date incDateAux(Date date, int month_days);
