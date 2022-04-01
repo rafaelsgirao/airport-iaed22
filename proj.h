@@ -94,3 +94,14 @@ int compareTime(mTime time1, mTime time2);
 /*-------------------*/
 
 #define MSG_INVALID_FLIGHT_CODE "invalid flight code\n"
+#define MSG_INVALID_AIRPORT_ID "invalid airport ID\n"
+#define MSG_TOO_MANY_AIRPORTS "too many airports\n"
+#define MSG_DUPLICATE_AIRPORT "duplicate airport\n"
+#define MSG_NO_SUCH_AIRPORT_ID "%s: no such airport ID\n"
+#define MSG_FLIGHT_ALREADY_EXISTS "flight already exists\n"
+#define MSG_TOO_MANY_FLIGHTS "too many flights\n"
+#define MSG_INVALID_DATE "invalid date\n"
+#define MSG_INVALID_DURATION "invalid duration\n"
+#define MSG_INVALID_CAPACITY "invalid capacity\n"
+
+#define MSG_NEW_AIRPORT "airport %s\n"

@@ -80,26 +80,23 @@ void addAirport() {
 
 	while (arprt.id[i] != '\0') {
 		if (!isupper(arprt.id[i++])) {
-			printf("invalid airport ID\n");
+			printf(MSG_INVALID_AIRPORT_ID);
 			return;
 		}
 	}
 	if (airport_count == MAX_AIRPORTS) {
-		printf("too many airports\n");
+		printf(MSG_TOO_MANY_AIRPORTS);
 		return;
 	}
 	for (i=0; i < airport_count; i++) {
 		if (!strcmp(arprt.id, airports[i].id)) {
-			printf("duplicate airport\n");
+			printf(MSG_DUPLICATE_AIRPORT);
 			return;
 		}
 	}
 
-
 	airports[airport_count] = arprt;
-
-	/*airports[airport_count++] = arprt;*/
-	printf("airport %s\n", airports[airport_count].id);
+	printf(MSG_NEW_AIRPORT, airports[airport_count].id);
 	ordered_airport_store[airport_count] = airport_count;
 	sortAirports();
 	airport_count++;
@@ -135,7 +132,7 @@ void listAirports() {
 				}
 			}
 			if (!found_airport) {
-				printf("%s: no such airport ID\n", arprt_id);
+				printf(MSG_NO_SUCH_AIRPORT_ID, arprt_id);
 				/*return;*/
 			}
 		} while ((c = getchar()) != '\n');
@@ -331,7 +328,7 @@ void addFlight() {
 		flight_i = flight_store[i];
 		if(!strcmp(flight_i.code, flight.code)) {
 			if((compareDate(flight.departure_date, flight_i.departure_date) == 0)) {
-				printf("flight already exists\n");
+				printf(MSG_FLIGHT_ALREADY_EXISTS);
 				return;
 			}
 		}
@@ -340,30 +337,30 @@ void addFlight() {
 	arprt_arrival_i = getAirport(flight.arrival_id);
 	arprt_departure_i = getAirport(flight.departure_id);
 	if (arprt_departure_i == -1) {
-		printf("%s: no such airport ID\n", flight.departure_id);
+		printf(MSG_NO_SUCH_AIRPORT_ID, flight.departure_id);
 		return;
 	}
 	if (arprt_arrival_i == -1) {
-		printf("%s: no such airport ID\n", flight.arrival_id);
+		printf(MSG_NO_SUCH_AIRPORT_ID, flight.arrival_id);
 		return;
 	}
 	if (flight_count == MAX_FLIGHTS) {
-		printf("too many flights\n");
+		printf(MSG_TOO_MANY_FLIGHTS);
 		return;
 	}
 	/*tmp_date is a Date one year into the future*/
 	/*if departure date is in the future relative to tmp_date (compareDate(...) < 0) , then it's invalid*/
 	tmp_date.year++;
 	if (compareDate(system_date, flight.departure_date) < 0 || compareDate(flight.departure_date, tmp_date) < 0)  {
-		printf("invalid date\n");
+		printf(MSG_INVALID_DATE);
 		return;
 	}
 	if((flight.duration.hour > 12) || (flight.duration.hour == 12 && flight.duration.minute > 0)) {
-		printf("invalid duration\n");
+		printf(MSG_INVALID_DURATION);
 		return;
 	}
 	if(!(MIN_FLIGHT_CAP <= flight.capacity && flight.capacity <= MAX_FLIGHT_CAP)) {
-		printf("invalid capacity\n");
+		printf(MSG_INVALID_CAPACITY);
 		return;
 	}
 
@@ -425,7 +422,7 @@ void listAirportDepartures() {
 	scanf("%s", arprt_id);
 	arprt_i = getAirport(arprt_id);
 	if (arprt_i == -1) {
-		printf("%s: no such airport ID\n", arprt_id);
+		printf(MSG_NO_SUCH_AIRPORT_ID, arprt_id);
 		return;
 	}
 
@@ -461,7 +458,7 @@ void listAirportArrivals() {
 	scanf("%s", arprt_id);
 	arprt_i = getAirport(arprt_id);
 	if (arprt_i == -1) {
-		printf("%s: no such airport ID\n", arprt_id);
+		printf(MSG_NO_SUCH_AIRPORT_ID, arprt_id);
 		return;
 	}
 	/*airports[arprt_i] is safeguarded by check_airport_existence*/
