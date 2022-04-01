@@ -276,7 +276,11 @@ int checkFlightInput(Flight flight) {
 			printf(MSG_INVALID_FLIGHT_CODE);
 			return 0;
 		}
-		else if (i >= 2 && !('0' <= flight.code[i] && flight.code[i] <= '9')) {
+		else if (i == 2 && flight.code[i] == '0') {
+			printf(MSG_INVALID_FLIGHT_CODE);
+			return 0;
+		}
+		else if (i > 2 && !('0' <= flight.code[i] && flight.code[i] <= '9')) {
 				printf(MSG_INVALID_FLIGHT_CODE);
 				return 0;
 			}
