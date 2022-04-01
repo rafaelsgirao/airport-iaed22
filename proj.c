@@ -146,10 +146,10 @@ void listAirports() {
 
 int getAirport(char arprt_id[]) {
 	int i;
-	Airport arprt;
+	Airport *arprt;
 	for (i=0; i < airport_count; i++) {
-		arprt = airports[i];
-		if (!strcmp(arprt_id, arprt.id)) {
+		arprt = &airports[i];
+		if (!strcmp(arprt_id, arprt->id)) {
 /*			printf("DEBUG: found airport %s with id '%d'\n", arprt_id, i);*/
 			return i;
 		}
@@ -377,8 +377,6 @@ void addFlight() {
 		flight.arrival_date = flight.departure_date;
 	}
 	flight.arrival_time = addTime(flight.departure_time, flight.duration);
-
-/*	printf("DEBUG: found flight code '%s'. Storing at pos '%d'\n", flight.code, flight_count);*/
 
 	/*Store flight*/
 	arprt_arrival = &airports[arprt_arrival_i];
