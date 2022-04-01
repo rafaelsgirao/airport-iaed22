@@ -22,10 +22,16 @@ Date system_date = {1, 1, 2022};
 
 
 /*FIXME comment global vars*/
+
+/*Airports are stored here. Airport order is never changed.*/
 Airport airports[MAX_AIRPORTS];
-/*Façade to simplify airport sorting*/
-int ordered_airport_store[MAX_AIRPORTS];
 int airport_count=0;
+
+/*Stores the indexes of the corresponding airport in airports.*/
+/*Indexes are sorted by flight code in sortAirports.*/
+int ordered_airport_store[MAX_AIRPORTS];
+
+/*Flights are stored here. Flight order is never changed.*/
 Flight flight_store[MAX_FLIGHTS];
 int flight_count=0;
 
@@ -59,6 +65,9 @@ int main() {
 	return 0;
 }
 
+/*
+ Add airport to system. Handles 'a' command.
+ */
 void addAirport() {
 	Airport arprt;
 	char *newline_ptr;
@@ -112,7 +121,6 @@ void listAirports() {
 	/*Case of command without arguments*/
 	if ((c = getchar()) == '\n') {
 		for(i=0;i < airport_count; i++) {
-/*			arprt = airports[i]; */
 			arprt = airports[ordered_airport_store[i]];
 			flight_count = arprt.departure_count;
 			printf("%s %s %s %d\n", arprt.id, arprt.city, arprt.country, flight_count);
@@ -147,60 +155,12 @@ int getAirport(char arprt_id[]) {
 	for (i=0; i < airport_count; i++) {
 		arprt = &airports[i];
 		if (!strcmp(arprt_id, arprt->id)) {
-/*			printf("DEBUG: found airport %s with id '%d'\n", arprt_id, i);*/
 			return i;
 		}
 	}
 	return -1;
 }
 
-/*
-	Use merge sort to sort flights
-*/
-void mergeSortFlights(int flights[], int left, int right, int departures)
-{
-    int m = (right + left) / 2;
-    if (right <= left)
-        return;
-    mergeSortFlights(flights, left, m, departures);
-    mergeSortFlights(flights, m + 1, right, departures);
-    merge(flights, left, m, right, departures);
-}
-/* Auxiliary array for merge sort*/
-int sort_aux[MAX_FLIGHTS];
-
-/*
- departures should be passed as 1 if we're sorting an airport's departures façade, 0 otherwise (sorting arrivals).
-*/
-void merge(int flights[], int left, int m, int right, int departures)
-{
-	int date_comparison, time_comparison;
-	Flight flight_j, flight_i;
-    int i, j, k;
-    for (i = m + 1; i > left; i--)
-        sort_aux[i - 1] = flights[i - 1];
-    for (j = m; j < right; j++)
-        sort_aux[right + m - j] = flights[j + 1];
-    for (k = left; k <= right; k++) {
-/*		printf("DEBUG: sort_aux[j]=%d; sort_aux[i]=%d; flight_count='%d'; departures=%d\n", sort_aux[j], sort_aux[i], flight_count, departures);*/
-		flight_j = flight_store[sort_aux[j]];
-		flight_i = flight_store[sort_aux[i]];
-        if (departures) {
-            date_comparison = compareDate(flight_j.departure_date, flight_i.departure_date);
-            time_comparison = compareTime(flight_j.departure_time, flight_i.departure_time);
-        }
-        else {
-            date_comparison = compareDate(flight_j.arrival_date, flight_i.arrival_date);
-            time_comparison = compareTime(flight_j.arrival_time, flight_i.arrival_time);
-        }
-		/*Equivalent to less(flight_j, flight_i)*/
-		if (date_comparison > 0 || (date_comparison == 0 && time_comparison > 0) || i == m + 1)
-/*        if (less(sort_aux[j], sort_aux[i]) || i == m + 1) */
-            flights[k] = sort_aux[j--];
-        else
-            flights[k] = sort_aux[i++];
-	}
-}
 
 void sortAirports() {
 	/*
@@ -259,15 +219,10 @@ void bubbleSortFlights(int flights[], int flight_count, int departures) {
 	right = flight_count;
 	for (i = 1; i < flight_count; i++) {
 		done = 1;
-/*		printf("DEBUG: i='%d'\n", i); */
 		for (j = left; j < right - 1; j++) {
-/*			ordered_airport_store[j] = index in the store of the actual airport  */
 			flight_a = &flight_store[flights[j]];
-/*			printf("DEBUG: flight_count=%d, j+1=%d \n", flight_count, j+1);*/
 			flight_b = &flight_store[flights[j+1]];
-/*			fprintf(stderr, "DEBUG: flight_a=%s , flight_b=%s , j=%d\n", flight_a.code, flight_b.code, j);*/
 			if(compareFlights(flight_a, flight_b, departures) == -1) {
-/*				fprintf(stderr, "DEBUG: Switched %s with %s\n", flight_a.code, flight_b.code);*/
 				done = 0;
 				flight_tmp_i = flights[j];
 				flights[j] = flights[j+1];
@@ -447,9 +402,6 @@ void listAirportDepartures() {
 }
 
 void listAirportArrivals() {
-	/*
-	 * TODO: 'Os voos são ordenados da data e hora mais antigas para a mais recente.'
-	 */
 	char arprt_id[LIM_AIRPORT_ID];
 	int i, arprt_i;
 	Airport arprt;
@@ -461,12 +413,11 @@ void listAirportArrivals() {
 		printf(MSG_NO_SUCH_AIRPORT_ID, arprt_id);
 		return;
 	}
-	/*airports[arprt_i] is safeguarded by check_airport_existence*/
+	/*airports[arprt_i] is safeguarded by getAirport*/
 	arprt = airports[arprt_i];
 
 	/*Sort airport's arrival array if dirty*/
 	if (arprt.arrival_dirty) {
-		/*mergeSortFlights(arprt.arrivals, 0, arprt.arrival_count, 0);*/
 		bubbleSortFlights(arprt.arrivals, arprt.arrival_count, 0);
 		arprt.arrival_dirty = 0;
 		airports[arprt_i] = arprt;
@@ -556,7 +507,6 @@ int compareTime(mTime time1, mTime time2) {
 mTime addTime(mTime time1, mTime time2) {
 	mTime time = {0, 0};
 	/*Sum minutes*/
-	fprintf(stderr, "DEBUG: time1=%d:%d, time2=%d:%d\n", time1.hour, time1.minute, time2.hour, time2.minute);
 	time.minute = time1.minute + time2.minute;
 	if (time.minute >= 60) {
 		time.minute -= 60;
@@ -615,14 +565,12 @@ void setDate() {
 		printf("invalid date\n");
 		return;
 	}
-	/*date.year += ano; - TODO: make sure this is irrelevant because max data <= 1 yr*/
 	system_date.year = date.year;
 	system_date.month = date.month;
 	system_date.day = date.day;
 
 	printDate(system_date);
 	printf("\n");
-/*	printf("%d-%d-%d\n", system_date.day, system_date.month, system_date.year);*/
 	return;
 }
 
@@ -633,26 +581,25 @@ void setDate() {
 	-1 if date2 is in past relative to date1
 */
 int compareDate(Date date1, Date date2) {
-	/*Comparar ano*/
+	/*Compare year*/
 	if (date2.year - date1.year > 0) {
 		return 1;
 	}
 	else if (date2.year - date1.year < 0) {
 		return -1;
 	}
-	/*Comparar mês*/
+	/*Compare month*/
 	if (date2.month - date1.month > 0) {
 		return 1;
 	}
 	else if (date2.month - date1.month < 0) {
 		return -1;
 	}
-	/*Comparar dia*/
-	/*if (date1.day> date2.day) {*/
+	/*Compare day*/
 	if (date2.day - date1.day > 0) {
 		return 1;
 	}
-	else if(date2.day - date1.day < 0) {
+	else if (date2.day - date1.day < 0) {
 		return -1;
 	}
 	/*Dates are the same*/
@@ -681,7 +628,6 @@ Date incDate(Date date) {
 }
 
 Date incDateAux(Date date, int month_days) {
-	fprintf(stderr, "DEBUG: date.day=%d, date.month=%d, date.year=%d", date.day, date.month, date.year);
 	if (date.day < month_days) {
 		date.day++;
 	}

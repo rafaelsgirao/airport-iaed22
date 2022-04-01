@@ -46,7 +46,6 @@ typedef struct {
 	char departure_id[LIM_AIRPORT_ID];
 	char arrival_id[LIM_AIRPORT_ID];
 	Date departure_date;
-	/*TODO: this is redundant, attempt to minimize if memory limit exceeded in future*/
 	mTime departure_time;
 	mTime duration;
 	Date arrival_date;
