@@ -62,30 +62,31 @@ typedef struct {
 /*-------------------*/
 void addAirport();
 void listAirports();
-void sortAirports();
 int getAirport(char arprt_id[]);
-void addFlight();
+void sortAirports();
+
 void handleVCommand();
+void addFlight();
+int checkFlightInput(Flight flight);
 void listFlights();
-void listAirportArrivals();
 void listAirportDepartures();
-void mergeSortFlights(int flights[], int left, int right, int departures);
-void merge(int flights[], int left, int m, int right, int departures);
-void sortFlights(int flights[], int flight_count, int departures);
-void setDate();
+void listAirportArrivals();
+void bubbleSortFlights(int flights[], int flight_count, int departures);
+int compareFlights(Flight *flight_a, Flight *flight_b, int departures);
 
 /*datestruct.c*/
-void printDate(Date date);
 Date readDate();
+void printDate(Date date);
+void setDate();
+int compareDate(Date data1, Date data2);
 Date incDate(Date date);
 Date incDateAux(Date date, int month_days);
-int compareDate(Date data1, Date data2);
 
-/*military_time.c*/
+/*timestruct.c*/
 mTime readTime();
 void printTime();
-mTime addTime(mTime time1, mTime time2);
 int compareTime(mTime time1, mTime time2);
+mTime addTime(mTime time1, mTime time2);
 
 
 /*-------------------*/

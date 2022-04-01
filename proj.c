@@ -18,10 +18,8 @@
 /*-Global Variables--*/
 /*-------------------*/
 
+/*Init system date.*/
 Date system_date = {1, 1, 2022};
-
-
-/*FIXME comment global vars*/
 
 /*Airports are stored here. Airport order is never changed.*/
 Airport airports[MAX_AIRPORTS];
@@ -78,9 +76,9 @@ void addAirport() {
 	/*Read Airport ID and country*/
 	scanf("%s%s", arprt.id, arprt.country);
 
-	/*Consume space*/
+	/*Consume spacing*/
 	getchar();
-	/*Read Airport city, can be a string with spaces*/
+	/*Read Airport city, can be a string with spacing*/
 	fgets(arprt.city, LIM_CITY_NAME, stdin);
 
 	if ((newline_ptr = strchr(arprt.city, '\n')) != NULL) {
@@ -196,65 +194,10 @@ void sortAirports() {
 	return;
 }
 
-/*
- * Compares two flights by their date and time.
- * Returns -1 if flight_a is in future relative to flight_b, 1 otherwise.
-*/
-int compareFlights(Flight *flight_a, Flight *flight_b, int departures) {
-	int date_comparison, time_comparison;
-	if (departures) {
-		date_comparison = compareDate(flight_a->departure_date,
-										flight_b->departure_date);
-		time_comparison = compareTime(flight_a->departure_time,
-										flight_b->departure_time);
-	}
-	else {
-		date_comparison = compareDate(flight_a->arrival_date,
-										flight_b->arrival_date);
-		time_comparison = compareTime(flight_a->arrival_time,
-										flight_b->arrival_time);
-	}
-
-	if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
-		return -1;
-	}
-	return 1;
-
-}
-/*
- Use bubble sort to sort the Flights façade.
- departures should be passed as 1 if we're sorting
- an airport's departures façade, 0 otherwise (sorting arrivals).
-*/
-void bubbleSortFlights(int flights[], int flight_count, int departures) {
-	int flight_tmp_i;
-	int left, right, i, j;
-	int done;
-	Flight *flight_a, *flight_b;
-	left = 0;
-	right = flight_count;
-	for (i = 1; i < flight_count; i++) {
-		done = 1;
-		for (j = left; j < right - 1; j++) {
-			flight_a = &flight_store[flights[j]];
-			flight_b = &flight_store[flights[j+1]];
-			if(compareFlights(flight_a, flight_b, departures) == -1) {
-				done = 0;
-				flight_tmp_i = flights[j];
-				flights[j] = flights[j+1];
-				flights[j+1] = flight_tmp_i;
-			}
-		}
-		if (done) {
-			return;
-		}
-		--right;
-	}
-	return;
-}
 
 /*
- * Handles 'v' command. If no input is provided, list all flights.
+ * Handles 'v' command.
+ * If no input is provided, list all flights.
  * Else, add a new flight.
  * */
 void handleVCommand() {
@@ -267,14 +210,16 @@ void handleVCommand() {
 	return;
 }
 
-
+/*
+ * Adds a new flight to the system and corresponding airport.
+ * Part of 'v' command.
+ * */
 void addFlight() {
-	int i;
-	Flight flight, flight_i;
+	Flight flight;
 	int arprt_arrival_i, arprt_departure_i;
 	Airport *arprt_arrival, *arprt_departure;
-	Date tmp_date = system_date;
 
+	/*Get command input.*/
 	scanf("%s%s%s", flight.code, flight.departure_id, flight.arrival_id);
 	flight.departure_date = readDate();
 	getchar();
@@ -283,67 +228,13 @@ void addFlight() {
 	flight.duration = readTime();
 	scanf("%d", &flight.capacity);
 
-	for(i = 0; i < LIM_FLIGHT_CODE && flight.code[i] != '\0'; i++) {
-		if(i < 2) {
-			if(!isupper(flight.code[i])) {
-				printf(MSG_INVALID_FLIGHT_CODE);
-				return;
-			}
-		}
-		else {
-			if(!('0' <= flight.code[i] && flight.code[i] <= '9'))
-			{
-				printf(MSG_INVALID_FLIGHT_CODE);
-				return;
-			}
-		}
-	}
-	for(i=0;i<flight_count;i++) {
-		flight_i = flight_store[i];
-		if(!strcmp(flight_i.code, flight.code)) {
-			if((compareDate(flight.departure_date,
-							flight_i.departure_date) == 0)) {
-				printf(MSG_FLIGHT_ALREADY_EXISTS);
-				return;
-			}
-		}
-	}
-
-	arprt_arrival_i = getAirport(flight.arrival_id);
-	arprt_departure_i = getAirport(flight.departure_id);
-	if (arprt_departure_i == -1) {
-		printf(MSG_NO_SUCH_AIRPORT_ID, flight.departure_id);
-		return;
-	}
-	if (arprt_arrival_i == -1) {
-		printf(MSG_NO_SUCH_AIRPORT_ID, flight.arrival_id);
-		return;
-	}
-	if (flight_count == MAX_FLIGHTS) {
-		printf(MSG_TOO_MANY_FLIGHTS);
-		return;
-	}
-	/*tmp_date is a Date one year into the future*/
-	/*if departure date is in the future
-	 *relatively to tmp_date (compareDate(...) < 0) , then it's invalid*/
-	tmp_date.year++;
-	if (compareDate(system_date, flight.departure_date) < 0 ||
-			compareDate(flight.departure_date, tmp_date) < 0)  {
-		printf(MSG_INVALID_DATE);
-		return;
-	}
-	if((flight.duration.hour > 12) ||
-			(flight.duration.hour == 12 && flight.duration.minute > 0)) {
-		printf(MSG_INVALID_DURATION);
-		return;
-	}
-	if(!(MIN_FLIGHT_CAP <= flight.capacity && flight.capacity <= MAX_FLIGHT_CAP)) {
-		printf(MSG_INVALID_CAPACITY);
+	/*Sanity checks.*/
+	if(!checkFlightInput(flight)) {
 		return;
 	}
 
-	/*Calculate arrival date and time*/
-	/*Check if flight arrives on the next day*/
+	/*Calculate arrival date and time.*/
+	/*Check if flight arrives on the next day.*/
 	if (flight.departure_time.hour + flight.duration.hour >= 24 ||
 		(flight.departure_time.hour + flight.duration.hour >= 23 &&
 		 flight.departure_time.minute + flight.duration.minute > 60)) {
@@ -356,13 +247,16 @@ void addFlight() {
 	}
 	flight.arrival_time = addTime(flight.departure_time, flight.duration);
 
-	/*Store flight*/
+	arprt_arrival_i = getAirport(flight.arrival_id);
+	arprt_departure_i = getAirport(flight.departure_id);
+
+	/*Store flight.*/
 	arprt_arrival = &airports[arprt_arrival_i];
 	arprt_arrival->arrivals[arprt_arrival->arrival_count++] = flight_count;
 	arprt_departure = &airports[arprt_departure_i];
 	arprt_departure->departures[arprt_departure->departure_count++] = flight_count;
 
-	/*	Mark arrays as dirty for later sorting*/
+	/*	Mark arrays as dirty for later sorting.*/
 	arprt_arrival->arrival_dirty = 1;
 	arprt_departure->departure_dirty = 1;
 
@@ -370,7 +264,73 @@ void addFlight() {
 	return;
 }
 
+/*
+ Checks input feeded into addFlight() for sanity checks.
+*/
+int checkFlightInput(Flight flight) {
+	int i, arprt_arrival_i, arprt_departure_i;
+	Flight flight_i;
+	Date tmp_date = system_date;
+	for(i = 0; i < LIM_FLIGHT_CODE && flight.code[i] != '\0'; i++) {
+		if(i < 2 && !isupper(flight.code[i])) {
+			printf(MSG_INVALID_FLIGHT_CODE);
+			return 0;
+		}
+		else if (i >= 2 && !('0' <= flight.code[i] && flight.code[i] <= '9')) {
+				printf(MSG_INVALID_FLIGHT_CODE);
+				return 0;
+			}
+	}
 
+	for(i=0;i<flight_count;i++) {
+		flight_i = flight_store[i];
+		if(!strcmp(flight_i.code, flight.code) &&
+			compareDate(flight.departure_date, flight_i.departure_date) == 0) {
+				printf(MSG_FLIGHT_ALREADY_EXISTS);
+				return 0;
+		}
+	}
+
+	arprt_arrival_i = getAirport(flight.arrival_id);
+	arprt_departure_i = getAirport(flight.departure_id);
+	if (arprt_departure_i == -1) {
+		printf(MSG_NO_SUCH_AIRPORT_ID, flight.departure_id);
+		return 0;
+	}
+	if (arprt_arrival_i == -1) {
+		printf(MSG_NO_SUCH_AIRPORT_ID, flight.arrival_id);
+		return 0;
+	}
+	if (flight_count == MAX_FLIGHTS) {
+		printf(MSG_TOO_MANY_FLIGHTS);
+		return 0;
+	}
+	/*tmp_date is a Date one year into the future*/
+	/*if departure date is in the future
+	 *relatively to tmp_date (compareDate(...) < 0) , then it's invalid*/
+	tmp_date.year++;
+	if (compareDate(system_date, flight.departure_date) < 0 ||
+			compareDate(flight.departure_date, tmp_date) < 0)  {
+		printf(MSG_INVALID_DATE);
+		return 0;
+	}
+	if((flight.duration.hour > 12) ||
+			(flight.duration.hour == 12 && flight.duration.minute > 0)) {
+		printf(MSG_INVALID_DURATION);
+		return 0;
+	}
+	if(!(MIN_FLIGHT_CAP <= flight.capacity && flight.capacity <= MAX_FLIGHT_CAP)) {
+		printf(MSG_INVALID_CAPACITY);
+		return 0;
+	}
+	return 1;
+
+}
+
+/*
+ Lists all flights, by creation order.
+ Part of 'v' command.
+ */
 void listFlights() {
 	int i;
 	Flight flight;
@@ -385,6 +345,10 @@ void listFlights() {
 
 }
 
+/*
+ * Handles 'p' command.
+ * Lists an airport's departures by ascending date.
+ * */
 void listAirportDepartures() {
 	char arprt_id[LIM_AIRPORT_ID];
 	int i, arprt_i;
@@ -418,6 +382,10 @@ void listAirportDepartures() {
 	return;
 }
 
+/*
+ * Handles 'c' command.
+ * Lists an airport's arrivals by ascending date.
+ * */
 void listAirportArrivals() {
 	char arprt_id[LIM_AIRPORT_ID];
 	int i, arprt_i;
@@ -440,7 +408,7 @@ void listAirportArrivals() {
 		airports[arprt_i] = arprt;
 	}
 
-	for (i=0 ; i < arprt.arrival_count; i++) {
+	for (i = 0 ; i < arprt.arrival_count; i++) {
 		flight = flight_store[arprt.arrivals[i]];
 		printf("%s %s ", flight.code, flight.departure_id);
 		printDate(flight.arrival_date);
@@ -450,4 +418,62 @@ void listAirportArrivals() {
 
 	}
 	return;
+}
+
+/*
+ Use bubble sort to sort the Flights façade.
+ departures should be passed as 1 if we're sorting
+ an airport's departures façade, 0 otherwise (sorting arrivals).
+*/
+void bubbleSortFlights(int flights[], int flight_count, int departures) {
+	int flight_tmp_i;
+	int left, right, i, j;
+	int done;
+	Flight *flight_a, *flight_b;
+	left = 0;
+	right = flight_count;
+	for (i = 1; i < flight_count; i++) {
+		done = 1;
+		for (j = left; j < right - 1; j++) {
+			flight_a = &flight_store[flights[j]];
+			flight_b = &flight_store[flights[j+1]];
+			if(compareFlights(flight_a, flight_b, departures) == -1) {
+				done = 0;
+				flight_tmp_i = flights[j];
+				flights[j] = flights[j+1];
+				flights[j+1] = flight_tmp_i;
+			}
+		}
+		if (done) {
+			return;
+		}
+		--right;
+	}
+	return;
+}
+
+/*
+ * Compares two flights by their date and time.
+ * Returns -1 if flight_a is in future relative to flight_b, 1 otherwise.
+*/
+int compareFlights(Flight *flight_a, Flight *flight_b, int departures) {
+	int date_comparison, time_comparison;
+	if (departures) {
+		date_comparison = compareDate(flight_a->departure_date,
+										flight_b->departure_date);
+		time_comparison = compareTime(flight_a->departure_time,
+										flight_b->departure_time);
+	}
+	else {
+		date_comparison = compareDate(flight_a->arrival_date,
+										flight_b->arrival_date);
+		time_comparison = compareTime(flight_a->arrival_time,
+										flight_b->arrival_time);
+	}
+
+	if (date_comparison < 0 || (date_comparison == 0 && time_comparison < 0)) {
+		return -1;
+	}
+	return 1;
+
 }
