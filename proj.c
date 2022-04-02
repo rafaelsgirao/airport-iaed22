@@ -237,7 +237,7 @@ void addFlight() {
 	/*Check if flight arrives on the next day.*/
 	if (flight.departure_time.hour + flight.duration.hour >= 24 ||
 		(flight.departure_time.hour + flight.duration.hour >= 23 &&
-		 flight.departure_time.minute + flight.duration.minute > 60)) {
+		 flight.departure_time.minute + flight.duration.minute >= 60)) {
 		/*Arrival date is only different if flight arrives
 		 * on next day's morning (max duration = 12h)*/
 		flight.arrival_date = incDate(flight.departure_date);
