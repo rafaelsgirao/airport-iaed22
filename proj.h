@@ -1,6 +1,6 @@
 /*
 	Rafael Girão - ist199309
-	1st IAED Project 2021/2022
+	2nd IAED Project 2021/2022
 */
 #define LIM_AIRPORT_ID 30+1
 #define LIM_COUNTRY_NAME 30+1
@@ -11,7 +11,7 @@
 #define MAX_AIRPORTS 40
 #define MAX_FLIGHTS 30000
 #define MIN_FLIGHT_CAP 10
-#define MAX_FLIGHT_CAP 100
+#define LIM_INSTRUCTION 65535
 
 /*-------------------*/
 /*-----Structures----*/
@@ -41,6 +41,15 @@ typedef struct {
 	int departure_dirty;
 } Airport;
 
+typedef struct reserv {
+	int *flight_id; /*Flight's index on flight_store*/
+	Date reservation_date;
+	char *reservationCode;
+	int passenger_count;
+	struct reserv *next;
+
+} Reservation;
+
 typedef struct {
 	char code[LIM_FLIGHT_CODE];
 	char departure_id[LIM_AIRPORT_ID];
@@ -50,9 +59,12 @@ typedef struct {
 	mTime duration;
 	Date arrival_date;
 	mTime arrival_time;
+	int passenger_count;
 	int capacity;
+	Reservation *reservations;
 
 } Flight;
+
 
 
 /*TODO: go through every function and order their prototypes
@@ -60,9 +72,27 @@ typedef struct {
 /*-------------------*/
 /*----Prototypes-----*/
 /*-------------------*/
+/*New prototypes added on second project*/
+void handleECommand();
+void handleRCommand();
+int readResCode(char res_code[]);
+int checkReservationInput(Reservation *res, int flight_id, char *flight_code, Flight *flight, char *res_code);
+
+/* remove the first element of the list and return the new head */
+Reservation * res_pop(Reservation * head);
+/* add integer e as the first element of the list and return the new head */
+Reservation * res_push(Reservation * head, int e);
+/* frees all memory associated with the list and returns NULL */
+Reservation * res_destroy(Reservation * head);
+
+/* print the elements of the integers in the list, one per line */
+/* TODO: remove this(?) */
+/* void res_print(node * head); */
+
 void addAirport();
 void listAirports();
 int getAirport(char arprt_id[]);
+int getFlight(char flight_code[]);
 void sortAirports();
 
 void handleVCommand();
@@ -105,3 +135,10 @@ mTime addTime(mTime time1, mTime time2);
 #define MSG_INVALID_CAPACITY "invalid capacity\n"
 
 #define MSG_NEW_AIRPORT "airport %s\n"
+
+/*Second project messages*/
+#define MSG_INVALID_FLIGHT "%s: flight does not exist\n"
+#define MSG_INVALID_RES_CODE "invalid reservation code\n"
+#define MSG_RES_ALREADY_EXISTS "%s: flight reservation already used\n"
+#define MSG_TOO_MANY_PASSENGERS "too many reservations\n"
+#define MSG_INVALID_PASSENGER_COUNT "invalid passenger number\n"

@@ -1,6 +1,6 @@
 /*
 	Rafael Girão - ist199309
-	1st IAED Project 2021/2022
+	2nd IAED Project 2021/2022
 */
 #include <stdio.h>
 #include <string.h>

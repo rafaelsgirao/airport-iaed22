@@ -1,6 +1,6 @@
 /*
 	Rafael Girão - ist199309
-	1st IAED Project 2021/2022
+	2nd IAED Project 2021/2022
 */
 
 /*TODO:
@@ -58,11 +58,99 @@ int main() {
 		case 't':
 			setDate();
 			break;
+		case 'r':
+			handleRCommand();
+			break;
+		case 'e':
+			handleECommand();
+			break;
 		}
 	}
 	return 0;
 }
 
+int readResCode(char res_code[]) {
+	char c;
+/*	char res_code[LIM_INSTRUCTION];*/
+/*	char *res_code = (char *) malloc(sizeof(char) * LIM_INSTRUCTION);*/
+	/* char res_ptr = res_code; */
+	int i = 0;
+	do {
+		c = getchar();
+		if (('0' <= c && c <='9') || ('A' <= c && 'Z' <= c)) {
+			/* TODO: handle NULL pointer later */
+			return 0;
+		}
+		else {
+			res_code[i++] = c;
+		}
+
+	} while (c != '\0' && c != '\n');
+
+	if (i < 10) {
+		return 0;
+	}
+
+	/* TODO: actually make this pointer point to res_code */
+	return 1;
+}
+
+void handleRCommand() {
+	Flight *flight;
+	int flight_id;
+	char flight_code[LIM_FLIGHT_CODE];
+/*	char res_code[LIM_INSTRUCTION];*/
+	char *res_code = (char *) malloc(sizeof(char) * LIM_INSTRUCTION);
+	Reservation *res;
+
+	res = (Reservation *) malloc(sizeof(Reservation));
+	scanf("%s", flight_code);
+	flight_id = getFlight(flight_code);
+
+	flight = &flight_store[flight_id];
+
+	if (!checkReservationInput(res, flight_id, flight_code, flight, res_code)) {
+		free(res);
+		free(res_code);
+		return;
+	}
+
+	/*TODO: order reservations alphabetically*/
+	return;
+}
+
+int checkReservationInput(Reservation *res, int flight_id, char flight_code[], Flight *flight, char *res_code) {
+	if (!readResCode(res_code)) {
+		printf(MSG_INVALID_RES_CODE);
+		return 0;
+	}
+	if (flight_id == -1) {
+		printf(MSG_INVALID_FLIGHT, flight_code);
+		return 0;
+	}
+	if (0) { /*FIXME: Make function to try to fetch reservation code, return -1 if nonexistent*/
+		printf(MSG_RES_ALREADY_EXISTS, res_code);
+		return 0;
+	}
+	if (flight->passenger_count == flight->capacity || flight->passenger_count + res->passenger_count > flight->capacity) {
+		printf(MSG_TOO_MANY_PASSENGERS);
+		return 0;
+	}
+
+	if (/*Check if date is valid here*/0) {
+		printf(MSG_INVALID_DATE);
+		return 0;
+	}
+	if (res->passenger_count <= 0) {
+		printf(MSG_INVALID_PASSENGER_COUNT);
+		return 0;
+	}
+	return 1;
+}
+
+void handleECommand() {
+	/* TODO: do things here */
+}
 /*
  Add airport to system. Handles 'a' command.
  */
@@ -169,6 +257,17 @@ int getAirport(char arprt_id[]) {
 	return -1;
 }
 
+int getFlight(char flight_code[]) {
+	int i;
+	Flight *flight;
+	for (i = 0;i < flight_count; i++) {
+		flight = &flight_store[i];
+		if (!strcmp(flight_code, flight->code)) {
+			return i;
+		}
+	}
+	return -1;
+}
 /*
  * Sorts the Airport store by airport code (alphabetically) with bubble sort.
 */
@@ -260,6 +359,9 @@ void addFlight() {
 	arprt_arrival->arrival_dirty = 1;
 	arprt_departure->departure_dirty = 1;
 
+	/*Init reservations.*/
+	flight.reservations = NULL;
+/*	flight.reservations = (Reservation *) malloc(sizeof(Reservation));*/
 	flight_store[flight_count++] = flight;
 	return;
 }
@@ -323,7 +425,9 @@ int checkFlightInput(Flight flight) {
 		printf(MSG_INVALID_DURATION);
 		return 0;
 	}
-	if(!(MIN_FLIGHT_CAP <= flight.capacity && flight.capacity <= MAX_FLIGHT_CAP)) {
+
+	/*Max flight capacity was removed on second project*/
+	if(!(MIN_FLIGHT_CAP <= flight.capacity)) {
 		printf(MSG_INVALID_CAPACITY);
 		return 0;
 	}
