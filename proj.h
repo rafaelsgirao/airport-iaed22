@@ -43,8 +43,8 @@ typedef struct {
 
 typedef struct reserv {
 	int *flight_id; /*Flight's index on flight_store*/
-	Date reservation_date;
-	char *reservationCode;
+	Date date;
+	char *code;
 	int passenger_count;
 	struct reserv *next;
 

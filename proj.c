@@ -120,6 +120,7 @@ void handleRCommand() {
 }
 
 int checkReservationInput(Reservation *res, int flight_id, char flight_code[], Flight *flight, char *res_code) {
+	Date tmp_date = system_date;
 	if (!readResCode(res_code)) {
 		printf(MSG_INVALID_RES_CODE);
 		return 0;
@@ -137,7 +138,10 @@ int checkReservationInput(Reservation *res, int flight_id, char flight_code[], F
 		return 0;
 	}
 
-	if (/*Check if date is valid here*/0) {
+	tmp_date.year++;
+	/*TODO: see if we can put this in a function. checkFlightInput does the same*/
+	if (compareDate(system_date, res->date) < 0 ||
+			compareDate(res->date, tmp_date) < 0) {
 		printf(MSG_INVALID_DATE);
 		return 0;
 	}
@@ -150,6 +154,7 @@ int checkReservationInput(Reservation *res, int flight_id, char flight_code[], F
 
 void handleECommand() {
 	/* TODO: do things here */
+	return;
 }
 /*
  Add airport to system. Handles 'a' command.
