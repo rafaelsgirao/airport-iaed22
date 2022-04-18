@@ -96,30 +96,55 @@ int readResCode(char res_code[]) {
 }
 
 void handleRCommand() {
-	Flight *flight;
-	int flight_id;
 	char flight_code[LIM_FLIGHT_CODE];
-/*	char res_code[LIM_INSTRUCTION];*/
-	char *res_code = (char *) malloc(sizeof(char) * LIM_INSTRUCTION);
-	Reservation *res;
-
-	res = (Reservation *) malloc(sizeof(Reservation));
+	char c;
+	Date date;
 	scanf("%s", flight_code);
-	flight_id = getFlight(flight_code);
+	getchar();
+	date = readDate();
+	if ((c = getchar()) == '\n') {
+		listReservations(flight_code, date);
+		return;
+	}
+	addReservation(flight_code, date);
+	return;
+}
+
+void listReservations(char flight_code[], Date date) {
+	int flight_id;
+	Flight *flight;
+	flight_id = getFlight(flight_code, date);
+	flight = &flight_store[flight_id];
+	res_print(flight->reservations);
+
+
+}
+void addReservation(char flight_code[], Date date) {
+	Flight *flight;
+	int flight_id, res_passenger_count;
+	char *res_code = malloc(sizeof(char) * LIM_INSTRUCTION);
+	/* Date *res_date = malloc(sizeof(Date)); */
+
+	scanf("%s%d", res_code, &res_passenger_count);
+	flight_id = getFlight(flight_code, date);
 
 	flight = &flight_store[flight_id];
 
-	if (!checkReservationInput(res, flight_id, flight_code, flight, res_code)) {
-		free(res);
+
+	if (!checkReservationInput(flight_id, flight_code, flight, res_code, date, res_passenger_count)) {
 		free(res_code);
 		return;
 	}
 
+	flight->reservations = res_push(flight->reservations, &date, res_code, res_passenger_count);
+
 	/*TODO: order reservations alphabetically*/
+	free(res_code);
 	return;
 }
 
-int checkReservationInput(Reservation *res, int flight_id, char flight_code[], Flight *flight, char *res_code) {
+
+int checkReservationInput(int flight_id, char flight_code[], Flight *flight, char *res_code, Date date, int res_passenger_count) {
 	Date tmp_date = system_date;
 	if (!readResCode(res_code)) {
 		printf(MSG_INVALID_RES_CODE);
@@ -133,19 +158,19 @@ int checkReservationInput(Reservation *res, int flight_id, char flight_code[], F
 		printf(MSG_RES_ALREADY_EXISTS, res_code);
 		return 0;
 	}
-	if (flight->passenger_count == flight->capacity || flight->passenger_count + res->passenger_count > flight->capacity) {
+	if (flight->passenger_count == flight->capacity || flight->passenger_count + res_passenger_count > flight->capacity) {
 		printf(MSG_TOO_MANY_PASSENGERS);
 		return 0;
 	}
 
 	tmp_date.year++;
 	/*TODO: see if we can put this in a function. checkFlightInput does the same*/
-	if (compareDate(system_date, res->date) < 0 ||
-			compareDate(res->date, tmp_date) < 0) {
+	if (compareDate(system_date, date) < 0 ||
+			compareDate(date, tmp_date) < 0) {
 		printf(MSG_INVALID_DATE);
 		return 0;
 	}
-	if (res->passenger_count <= 0) {
+	if (res_passenger_count <= 0) {
 		printf(MSG_INVALID_PASSENGER_COUNT);
 		return 0;
 	}
@@ -262,12 +287,12 @@ int getAirport(char arprt_id[]) {
 	return -1;
 }
 
-int getFlight(char flight_code[]) {
+int getFlight(char flight_code[], Date date) {
 	int i;
 	Flight *flight;
 	for (i = 0;i < flight_count; i++) {
 		flight = &flight_store[i];
-		if (!strcmp(flight_code, flight->code)) {
+		if (!strcmp(flight_code, flight->code) && compareDate(date, flight->departure_date) == 0) {
 			return i;
 		}
 	}

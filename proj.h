@@ -42,8 +42,8 @@ typedef struct {
 } Airport;
 
 typedef struct reserv {
-	int *flight_id; /*Flight's index on flight_store*/
-	Date date;
+	/* int *flight_id; Flight's index on flight_store*/
+	Date *date;
 	char *code;
 	int passenger_count;
 	struct reserv *next;
@@ -74,25 +74,30 @@ typedef struct {
 /*-------------------*/
 /*New prototypes added on second project*/
 void handleECommand();
-void handleRCommand();
 int readResCode(char res_code[]);
-int checkReservationInput(Reservation *res, int flight_id, char *flight_code, Flight *flight, char *res_code);
+int readResCode(char res_code[]);
+void handleRCommand();
+void listReservations(char flight_code[], Date date);
+void addReservation(char flight_code[], Date date);
+int checkReservationInput(int flight_id, char *flight_code, Flight *flight, char *res_code, Date date, int passenger_count);
+char *strdup(const char *);
+
+/* ---reservations.c--- */
 
 /* remove the first element of the list and return the new head */
 Reservation * res_pop(Reservation * head);
 /* add integer e as the first element of the list and return the new head */
-Reservation * res_push(Reservation * head, int e);
+Reservation * res_push(Reservation * head, Date *res_date, char *res_code, int res_passenger_count);
 /* frees all memory associated with the list and returns NULL */
 Reservation * res_destroy(Reservation * head);
-
 /* print the elements of the integers in the list, one per line */
-/* TODO: remove this(?) */
-/* void res_print(node * head); */
+void res_print(Reservation * head);
 
+/* ---Prototypes made on first project--- */
 void addAirport();
 void listAirports();
 int getAirport(char arprt_id[]);
-int getFlight(char flight_code[]);
+int getFlight(char flight_code[], Date date);
 void sortAirports();
 
 void handleVCommand();
@@ -142,3 +147,4 @@ mTime addTime(mTime time1, mTime time2);
 #define MSG_RES_ALREADY_EXISTS "%s: flight reservation already used\n"
 #define MSG_TOO_MANY_PASSENGERS "too many reservations\n"
 #define MSG_INVALID_PASSENGER_COUNT "invalid passenger number\n"
+#define MSG_NO_MEMORY "No memory.\n"
