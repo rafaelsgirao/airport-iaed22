@@ -36,6 +36,19 @@ int flight_count=0;
 /*-------------------*/
 /*-----Functions-----*/
 /*-------------------*/
+int readWord(char *str) {
+    char c = getchar();
+    int i = 0;
+    while (c == ' ' || c == '\t')
+        c = getchar();
+    while (c != ' ' && c != '\t' && c != '\n') {
+        str[i++] = c;
+        c = getchar();
+    }
+    str[i] = '\0';
+    return (c == '\n');
+}
+
 int main() {
 	char command;
 	while ((command = getchar()) != 'q') {
@@ -69,29 +82,24 @@ int main() {
 	return 0;
 }
 
-int readResCode(char res_code[]) {
+int checkRescode(char res_code[]) {
 	char c;
-/*	char res_code[LIM_INSTRUCTION];*/
-/*	char *res_code = (char *) malloc(sizeof(char) * LIM_INSTRUCTION);*/
 	/* char res_ptr = res_code; */
 	int i = 0;
-	do {
-		c = getchar();
-		if (('0' <= c && c <='9') || ('A' <= c && 'Z' <= c)) {
-			/* TODO: handle NULL pointer later */
-			return 0;
-		}
-		else {
-			res_code[i++] = c;
-		}
-
-	} while (c != '\0' && c != '\n');
-
-	if (i < 10) {
+	int len = strlen(res_code);
+	if (len+1<10) {
+		printf("%s", res_code);
+		fprintf(stderr, "failed at strlen %d\n", len);
 		return 0;
 	}
+	for (i=0; i < len ;i++) {
+		c = res_code[i];
+		if (!(('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))) {
+			fprintf(stderr, "failed at char %c\n", c);
+			return 0;
+		}
+	}
 
-	/* TODO: actually make this pointer point to res_code */
 	return 1;
 }
 
@@ -99,7 +107,7 @@ void handleRCommand() {
 	char flight_code[LIM_FLIGHT_CODE];
 	char c;
 	Date date;
-	scanf("%s", flight_code);
+	readWord(flight_code);
 	getchar();
 	date = readDate();
 	if ((c = getchar()) == '\n') {
@@ -122,11 +130,13 @@ void listReservations(char flight_code[], Date date) {
 void addReservation(char flight_code[], Date date) {
 	Flight *flight;
 	int flight_id, res_passenger_count;
-	char *res_code = malloc(sizeof(char) * LIM_INSTRUCTION);
+	char *res_code = malloc(LIM_INSTRUCTION);
 	/* Date *res_date = malloc(sizeof(Date)); */
+	Date null_date = {0,0,0};
+	readWord(res_code);
 
-	scanf("%s%d", res_code, &res_passenger_count);
-	flight_id = getFlight(flight_code, date);
+	scanf("%d", &res_passenger_count);
+	flight_id = getFlight(flight_code, null_date);
 
 	flight = &flight_store[flight_id];
 
@@ -148,7 +158,8 @@ void addReservation(char flight_code[], Date date) {
 
 int checkReservationInput(int flight_id, char flight_code[], Flight *flight, char *res_code, Date date, int res_passenger_count) {
 	Date tmp_date = system_date;
-	if (!readResCode(res_code)) {
+	if (!checkRescode(res_code)) {
+
 		printf(MSG_INVALID_RES_CODE);
 		return 0;
 	}
@@ -162,6 +173,8 @@ int checkReservationInput(int flight_id, char flight_code[], Flight *flight, cha
 	}
 	if (flight->passenger_count == flight->capacity || flight->passenger_count + res_passenger_count > flight->capacity) {
 		printf(MSG_TOO_MANY_PASSENGERS);
+		fprintf(stderr, "flight->passenger_count = %d, flight->capacity=%d\n", flight->passenger_count, flight->capacity);
+		fprintf(stderr, "res_passenger_count = %d\n", res_passenger_count);
 		return 0;
 	}
 
@@ -181,8 +194,8 @@ int checkReservationInput(int flight_id, char flight_code[], Flight *flight, cha
 
 int removeReservation(char res_code[]) {
 	/* FIXME */
-	printf("FIXME: %s", res_code);
-	return 1;
+	fprintf(stderr, "FIXME: %s\n", res_code);
+	return 0;
 
 }
 
@@ -195,6 +208,7 @@ int removeFlight(char flight_code[]) {
 
 	/*Do loop for every flight with the same code*/
 	while (flight_id != -1) {
+		fprintf(stderr, "Got inside while loop, flight_id=%d\n", flight_id);
 		/*Temporarily save copy to access airports*/
 		flight = flight_store[flight_id];
 		/*Shift all flights to the right of removed flight to the left*/
@@ -203,6 +217,7 @@ int removeFlight(char flight_code[]) {
 
 		while (i < flight_count) {
 			flight_store[i] = flight_store[i+1];
+			i++;
 		}
 
 		arprt_id = getAirport(flight.departure_id);
@@ -224,7 +239,7 @@ int removeFlight(char flight_code[]) {
 
 void handleECommand() {
 	/* TODO: do things here */
-	char *code = malloc(sizeof(char) * LIM_INSTRUCTION);
+	char *code = malloc(LIM_INSTRUCTION+1);
 	scanf("%s", code);
 
 	/*Swapping Flights shouldn't be too bad.
@@ -345,12 +360,14 @@ int getAirport(char arprt_id[]) {
 int getFlight(char flight_code[], Date date) {
 	int i;
 	Flight *flight;
-	Date tmp_date = {0,0,0};
+	Date null_date = {0,0,0};
 	for (i = 0;i < flight_count; i++) {
 		flight = &flight_store[i];
 		/*If date is 0,0,0 then we intentionally ignore it*/
 		if (!strcmp(flight_code, flight->code) &&
-				(compareDate(date, flight->departure_date) == 0 || compareDate(tmp_date, date)) ) {
+				(compareDate(date, flight->departure_date) == 0 || compareDate(null_date, date) == 0) ) {
+		/* if (!strcmp(flight_code, flight->code)) { */
+			/* fprintf(stderr, "got flight, %d\n", date.day); */
 			return i;
 		}
 	}
@@ -433,6 +450,7 @@ void addFlight() {
 		flight.arrival_date = flight.departure_date;
 	}
 	flight.arrival_time = addTime(flight.departure_time, flight.duration);
+	flight.passenger_count = 0;
 
 	arprt_departure_i = getAirport(flight.departure_id);
 	arprt_departure = &airports[arprt_departure_i];
