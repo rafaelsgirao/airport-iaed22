@@ -143,6 +143,8 @@ void addReservation(char flight_code[], Date date) {
 	return;
 }
 
+/* Flight code: string composed of 2 uppercase letters and a number between 1 and 9999 */
+/* Reservation code: string composed of uppercase and digits, no less than 10 chars */
 
 int checkReservationInput(int flight_id, char flight_code[], Flight *flight, char *res_code, Date date, int res_passenger_count) {
 	Date tmp_date = system_date;
@@ -177,10 +179,66 @@ int checkReservationInput(int flight_id, char flight_code[], Flight *flight, cha
 	return 1;
 }
 
+int removeReservation(char res_code[]) {
+	/* FIXME */
+	printf("FIXME: %s", res_code);
+	return 1;
+
+}
+
+int removeFlight(char flight_code[]) {
+	int flight_id, i, arprt_id;
+	Flight flight;
+	Airport *arprt;
+	Date null_date = {0,0,0};
+	flight_id = getFlight(flight_code, null_date);
+
+	/*Do loop for every flight with the same code*/
+	while (flight_id != -1) {
+		/*Temporarily save copy to access airports*/
+		flight = flight_store[flight_id];
+		/*Shift all flights to the right of removed flight to the left*/
+		i = flight_id;
+		flight_count--;
+
+		while (i < flight_count) {
+			flight_store[i] = flight_store[i+1];
+		}
+
+		arprt_id = getAirport(flight.departure_id);
+		arprt = &airports[arprt_id];
+		arprt->departure_count--;
+
+
+		flight_id = getFlight(flight_code, null_date);
+	}
+
+	/*Remove matching indexes and decrement all flights that had an index to the right*/
+	/* FIXME */
+
+
+	return flight_id;
+
+}
+
+
 void handleECommand() {
 	/* TODO: do things here */
+	char *code = malloc(sizeof(char) * LIM_INSTRUCTION);
+	scanf("%s", code);
+
+	/*Swapping Flights shouldn't be too bad.
+	 * At time of writing sizeof(Flight)=136 bytes
+	 * */
+	/*Assume a res code cannot be the same as a flight code*/
+	if (!(removeReservation(code) || removeFlight(code))) {
+		printf(MSG_NOT_FOUND);
+	}
 	return;
+
 }
+
+
 /*
  Add airport to system. Handles 'a' command.
  */
@@ -188,9 +246,8 @@ void addAirport() {
 	Airport arprt;
 	char *newline_ptr;
 	int i = 0;
-	arprt.arrival_count = 0;
-	arprt.departure_count = 0;
 
+	arprt.departure_count = 0;
 	/*Read Airport ID and country*/
 	scanf("%s%s", arprt.id, arprt.country);
 
@@ -237,14 +294,13 @@ void listAirports() {
 	int i, found_airport;
 	char c;
 	char arprt_id[LIM_AIRPORT_ID];
-	Airport arprt;
+	Airport *arprt;
 	/*Case of command without arguments*/
 	if ((c = getchar()) == '\n') {
 		for(i=0;i < airport_count; i++) {
-			arprt = airports[ordered_airport_store[i]];
-			flight_count = arprt.departure_count;
-			printf("%s %s %s %d\n", arprt.id, arprt.city,
-									arprt.country, flight_count);
+			arprt = &airports[ordered_airport_store[i]];
+			printf("%s %s %s %d\n", arprt->id, arprt->city,
+									arprt->country, arprt->departure_count);
 		}
 		return;
 	}
@@ -253,11 +309,10 @@ void listAirports() {
 			found_airport = 0;
 			scanf("%s", arprt_id);
 			for(i=0; i < airport_count; i++) {
-				arprt = airports[i];
-				if (!strcmp(arprt_id, arprt.id)) {
-					flight_count = arprt.departure_count;
-					printf("%s %s %s %d\n", arprt.id, arprt.city,
-											arprt.country, flight_count);
+				arprt = &airports[i];
+				if (!strcmp(arprt_id, arprt->id)) {
+					printf("%s %s %s %d\n", arprt->id, arprt->city,
+											arprt->country, arprt->departure_count);
 					found_airport = 1;
 				}
 			}
@@ -290,9 +345,12 @@ int getAirport(char arprt_id[]) {
 int getFlight(char flight_code[], Date date) {
 	int i;
 	Flight *flight;
+	Date tmp_date = {0,0,0};
 	for (i = 0;i < flight_count; i++) {
 		flight = &flight_store[i];
-		if (!strcmp(flight_code, flight->code) && compareDate(date, flight->departure_date) == 0) {
+		/*If date is 0,0,0 then we intentionally ignore it*/
+		if (!strcmp(flight_code, flight->code) &&
+				(compareDate(date, flight->departure_date) == 0 || compareDate(tmp_date, date)) ) {
 			return i;
 		}
 	}
@@ -303,7 +361,7 @@ int getFlight(char flight_code[], Date date) {
 */
 void sortAirports() {
 	int arprt_tmp_i;
-	Airport arprt_a, arprt_b;
+	Airport *arprt_a, *arprt_b;
 	int left, right, i, j;
 	left = 0;
 	right = airport_count;
@@ -311,9 +369,9 @@ void sortAirports() {
 		for (j = left; j < right + (left - i); j++) {
 /*			ordered_airport_store[j]
  *				is the index in the store of the actual airport  */
-			arprt_a = airports[ordered_airport_store[j]];
-			arprt_b = airports[ordered_airport_store[j+1]];
-			if (strcmp(arprt_a.id, arprt_b.id) > 0) {
+			arprt_a = &airports[ordered_airport_store[j]];
+			arprt_b = &airports[ordered_airport_store[j+1]];
+			if (strcmp(arprt_a->id, arprt_b->id) > 0) {
 				arprt_tmp_i = ordered_airport_store[j];
 				ordered_airport_store[j] = ordered_airport_store[j+1];
 				ordered_airport_store[j+1] = arprt_tmp_i;
@@ -345,8 +403,8 @@ void handleVCommand() {
  * */
 void addFlight() {
 	Flight flight;
-	int arprt_arrival_i, arprt_departure_i;
-	Airport *arprt_arrival, *arprt_departure;
+	int arprt_departure_i;
+	Airport *arprt_departure;
 
 	/*Get command input.*/
 	scanf("%s%s%s", flight.code, flight.departure_id, flight.arrival_id);
@@ -376,22 +434,11 @@ void addFlight() {
 	}
 	flight.arrival_time = addTime(flight.departure_time, flight.duration);
 
-	arprt_arrival_i = getAirport(flight.arrival_id);
 	arprt_departure_i = getAirport(flight.departure_id);
-
-	/*Store flight.*/
-	arprt_arrival = &airports[arprt_arrival_i];
-	arprt_arrival->arrivals[arprt_arrival->arrival_count++] = flight_count;
 	arprt_departure = &airports[arprt_departure_i];
-	arprt_departure->departures[arprt_departure->departure_count++] = flight_count;
+	arprt_departure->departure_count++;
 
-	/*	Mark arrays as dirty for later sorting.*/
-	arprt_arrival->arrival_dirty = 1;
-	arprt_departure->departure_dirty = 1;
-
-	/*Init reservations.*/
 	flight.reservations = NULL;
-/*	flight.reservations = (Reservation *) malloc(sizeof(Reservation));*/
 	flight_store[flight_count++] = flight;
 	return;
 }
@@ -471,13 +518,13 @@ int checkFlightInput(Flight flight) {
  */
 void listFlights() {
 	int i;
-	Flight flight;
+	Flight *flight;
 	for(i=0; i < flight_count; i++) {
-		flight = flight_store[i];
-		printf("%s %s %s ", flight.code, flight.departure_id, flight.arrival_id);
-		printDate(flight.departure_date);
+		flight = &flight_store[i];
+		printf("%s %s %s ", flight->code, flight->departure_id, flight->arrival_id);
+		printDate(flight->departure_date);
 		printf(" ");
-		printTime(flight.departure_time);
+		printTime(flight->departure_time);
 		printf("\n");
 	}
 
@@ -489,73 +536,69 @@ void listFlights() {
  * */
 void listAirportDepartures() {
 	char arprt_id[LIM_AIRPORT_ID];
-	int i, arprt_i;
-	Airport arprt;
-	Flight flight;
-
+	int i, arprt_i, n;
+	int departures[MAX_FLIGHTS];
+	/* Airport *arprt; */
+	Flight *flight;
 	scanf("%s", arprt_id);
 	arprt_i = getAirport(arprt_id);
 	if (arprt_i == -1) {
 		printf(MSG_NO_SUCH_AIRPORT_ID, arprt_id);
 		return;
 	}
-
-	/*airports[arprt_i] is safeguarded by check_airport_existence*/
-	arprt = airports[arprt_i];
-	/*Sort airport's departure array if dirty*/
-	if (arprt.departure_dirty) {
-/*		mergeSortFlights(arprt.departures, 0, arprt.departure_count, 1);*/
-		bubbleSortFlights(arprt.departures, arprt.departure_count, 1);
-		arprt.departure_dirty = 0;
-		airports[arprt_i] = arprt;
+	n = 0;
+	for (i=0;i<flight_count;i++) {
+		flight = &flight_store[i];
+		if (!strcmp(flight->departure_id, arprt_id)) {
+			departures[n++] = i;
+		}
 	}
-	for (i = 0 ; i < arprt.departure_count; i++) {
-		flight = flight_store[arprt.departures[i]];
-		printf("%s %s ", flight.code, flight.arrival_id);
-		printDate(flight.departure_date);
+	bubbleSortFlights(departures, n, 1);
+
+	for (i = 0 ; i < n; i++) {
+		flight = &flight_store[departures[i]];
+		printf("%s %s ", flight->code, flight->arrival_id);
+		printDate(flight->departure_date);
 		printf(" ");
-		printTime(flight.departure_time);
+		printTime(flight->departure_time);
 		printf("\n");
 	}
-	return;
 }
+
 
 /*
  * Handles 'c' command.
  * Lists an airport's arrivals by ascending date.
  * */
+/*TODO: if time, merge listAirportArrivals and listAirportDepartures*/
 void listAirportArrivals() {
 	char arprt_id[LIM_AIRPORT_ID];
-	int i, arprt_i;
-	Airport arprt;
-	Flight flight;
-
+	int i, arprt_i, n;
+	int arrivals[MAX_FLIGHTS];
+	Flight *flight;
 	scanf("%s", arprt_id);
 	arprt_i = getAirport(arprt_id);
 	if (arprt_i == -1) {
 		printf(MSG_NO_SUCH_AIRPORT_ID, arprt_id);
 		return;
 	}
-	/*airports[arprt_i] is safeguarded by getAirport*/
-	arprt = airports[arprt_i];
-
-	/*Sort airport's arrival array if dirty*/
-	if (arprt.arrival_dirty) {
-		bubbleSortFlights(arprt.arrivals, arprt.arrival_count, 0);
-		arprt.arrival_dirty = 0;
-		airports[arprt_i] = arprt;
+	n = 0;
+	for (i=0;i<flight_count;i++) {
+		flight = &flight_store[i];
+		if (!strcmp(arprt_id, flight->arrival_id)) {
+			arrivals[n++] = i;
+		}
 	}
+	bubbleSortFlights(arrivals, n, 0);
 
-	for (i = 0 ; i < arprt.arrival_count; i++) {
-		flight = flight_store[arprt.arrivals[i]];
-		printf("%s %s ", flight.code, flight.departure_id);
-		printDate(flight.arrival_date);
+	for (i = 0 ; i < n; i++) {
+		flight = &flight_store[arrivals[i]];
+		printf("%s %s ", flight->code, flight->departure_id);
+		printDate(flight->arrival_date);
 		printf(" ");
-		printTime(flight.arrival_time);
+		printTime(flight->arrival_time);
 		printf("\n");
-
 	}
-	return;
 }
 
 /*

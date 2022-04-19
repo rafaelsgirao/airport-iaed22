@@ -31,14 +31,17 @@ typedef struct {
 	char id[LIM_AIRPORT_ID];
 	char country[LIM_COUNTRY_NAME];
 	char city[LIM_CITY_NAME];
-	int arrival_count, departure_count;
+
+	int departure_count;
+	/*int arrival_count, departure_count;*/
 	/*Array of ints to access flights in the flight store*/
-	int arrivals[MAX_FLIGHTS];
-	int departures[MAX_FLIGHTS];
+	/*int arrivals[MAX_FLIGHTS];*/
+	/*int departures[MAX_FLIGHTS];*/
+
 	/*These are 1 if values have been added to arrays above since last sort, 0 otherwise*/
 	/*This way sorting only occurs if dirty is 1 and if a function is going to use the array*/
-	int arrival_dirty;
-	int departure_dirty;
+	/* int arrival_dirty; */
+	/* int departure_dirty; */
 } Airport;
 
 typedef struct reserv {
@@ -148,3 +151,4 @@ mTime addTime(mTime time1, mTime time2);
 #define MSG_TOO_MANY_PASSENGERS "too many reservations\n"
 #define MSG_INVALID_PASSENGER_COUNT "invalid passenger number\n"
 #define MSG_NO_MEMORY "No memory.\n"
+#define MSG_NOT_FOUND "not found\n"
