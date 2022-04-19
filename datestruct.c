@@ -16,25 +16,27 @@ extern Date system_date;
 Date readDate() {
 	/*Getchar in between fgets to consume dash character */
 	Date newdate;
-	char rawday[2+1], rawmonth[2+1], rawyear[4+1];
-	getchar();
-	rawday[0] = getchar();
-	rawday[1] = getchar();
-	rawday[2] = '\0';
-	getchar();
-	rawmonth[0] = getchar();
-	rawmonth[1] = getchar();
-	rawmonth[2] = '\0';
-	getchar();
-	rawyear[0] = getchar();
-	rawyear[1] = getchar();
-	rawyear[2] = getchar();
-	rawyear[3] = getchar();
-	rawyear[4] = '\0';
+	scanf("%d-%d-%d", &newdate.day, &newdate.month, &newdate.year);
+	/* Date newdate; */
+	/* char rawday[2+1], rawmonth[2+1], rawyear[4+1]; */
+	/* getchar(); */
+	/* rawday[0] = getchar(); */
+	/* rawday[1] = getchar(); */
+	/* rawday[2] = '\0'; */
+	/* getchar(); */
+	/* rawmonth[0] = getchar(); */
+	/* rawmonth[1] = getchar(); */
+	/* rawmonth[2] = '\0'; */
+	/* getchar(); */
+	/* rawyear[0] = getchar(); */
+	/* rawyear[1] = getchar(); */
+	/* rawyear[2] = getchar(); */
+	/* rawyear[3] = getchar(); */
+	/* rawyear[4] = '\0'; */
 
-	newdate.day = atoi(rawday);
-	newdate.month = atoi(rawmonth);
-	newdate.year = atoi(rawyear);
+	/* newdate.day = atoi(rawday); */
+	/* newdate.month = atoi(rawmonth); */
+	/* newdate.year = atoi(rawyear); */
 	return newdate;
 }
 void printDate(Date date) {

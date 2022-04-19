@@ -12,22 +12,10 @@
 */
 
 mTime readTime() {
-	/*int time;*/
 	/*Time to be read is of the format: 'HH:MM'*/
 
-	char raw_minute[LIM_RAW_TIME], raw_hour[LIM_RAW_TIME];
 	mTime time;
-
-	raw_hour[0] = getchar();
-	raw_hour[1] = getchar();
-	raw_hour[2] = '\0';
-	getchar(); /*discard ':' char*/
-	raw_minute[0] = getchar();
-	raw_minute[1] = getchar();
-	raw_minute[2] = '\0';
-	time.hour = atoi(raw_hour);
-	time.minute = atoi(raw_minute);
-
+	scanf("%d:%d", &time.hour, &time.minute);
 	return time;
 }
 
