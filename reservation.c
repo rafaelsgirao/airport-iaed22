@@ -37,7 +37,6 @@ Reservation* res_insert(Reservation *head, Reservation *new_node) {
 
 
 
-	fprintf(stderr, "VALGRIND DEBUG: head == NULL = %d\n", head == NULL);
 	/* fprintf(stderr, "VALGRIND DEBUG: head->code == NULL = %d\n", head->code == NULL); */
 
 	if (head == NULL || strcmp(new_node->code, head->code) < 0) {
@@ -47,12 +46,10 @@ Reservation* res_insert(Reservation *head, Reservation *new_node) {
 
 	current = head;
 	/* Locate first node in list "smaller" (in strcmp) than our current node */
-	while (current->next != NULL) {
+	while (current->next != NULL && strcmp(new_node->code, current->code) > 0) {
 		/*new_node->code > current->code*/
-		if (strcmp(new_node->code, current->code) > 0) {
 			fprintf(stderr, "DEBUG(res_push): %s smaller than %s, continuing\n", current->code, new_node->code);
 			current = current->next;
-		}
 	}
 	fprintf(stderr, "DEBUG(res_push): Going to insert %s after %s\n", new_node->code, current->code);
 	/*Insert in a sorted manner*/
@@ -63,7 +60,6 @@ Reservation* res_insert(Reservation *head, Reservation *new_node) {
 }
 
 void res_print(Reservation *head) {
-	fprintf(stderr, "DEBUG: (head == null) = %d\n", head==NULL);
 	while (head != NULL) {
 		printf("%s %d\n", head->code, head->passenger_count);
 		head = head->next;

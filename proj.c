@@ -172,8 +172,6 @@ void addReservation(int flight_id, Date date) {
 		handle_oom();
 	}
 
-	fprintf(stderr, "DEBUG(addReservation): (flight->reservations == null) = %d\n", flight->reservations==NULL);
-	/*TODO: order reservations alphabetically*/
 	free(res_code);
 	return;
 }
@@ -273,6 +271,7 @@ void handleECommand() {
 	if (!(removeReservation(code) || removeFlight(code))) {
 		printf(MSG_NOT_FOUND);
 	}
+	free(code);
 	return;
 
 }
