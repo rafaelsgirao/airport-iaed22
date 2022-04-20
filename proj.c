@@ -145,6 +145,7 @@ void listReservations(int flight_id) {
 }
 void addReservation(int flight_id, Date date) {
 	Flight *flight;
+	Reservation *new_res;
 	int res_passenger_count;
 	char *res_code = malloc(LIM_INSTRUCTION);
 	/* Date null_date = {0,0,0}; */
@@ -164,7 +165,12 @@ void addReservation(int flight_id, Date date) {
 		return;
 	}
 
-	flight->reservations = res_push(flight->reservations, &date, res_code, res_passenger_count);
+	new_res = res_create(&date, res_code, res_passenger_count);
+
+	flight->reservations = res_insert(flight->reservations, new_res);
+	if (flight->reservations == NULL) {
+		handle_oom();
+	}
 
 	fprintf(stderr, "DEBUG(addReservation): (flight->reservations == null) = %d\n", flight->reservations==NULL);
 	/*TODO: order reservations alphabetically*/

@@ -91,7 +91,8 @@ char *strdup(const char *);
 /* remove the first element of the list and return the new head */
 Reservation * res_pop(Reservation * head);
 /* add integer e as the first element of the list and return the new head */
-Reservation * res_push(Reservation * head, Date *res_date, char *res_code, int res_passenger_count);
+Reservation * res_create(Date *res_date, char *res_code, int res_passenger_count);
+Reservation* res_insert(Reservation *head, Reservation *new_node);
 /* frees all memory associated with the list and returns NULL */
 Reservation * res_destroy(Reservation * head);
 /* print the elements of the integers in the list, one per line */
