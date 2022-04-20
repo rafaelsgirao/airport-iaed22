@@ -456,7 +456,7 @@ void addFlight() {
 	scanf("%d", &flight.capacity);
 
 	/*Sanity checks.*/
-	if(!checkFlightInput(flight)) {
+	if(!checkFlightInput(&flight)) {
 		return;
 	}
 
@@ -487,42 +487,42 @@ void addFlight() {
 /*
  Checks input feeded into addFlight() for sanity checks.
 */
-int checkFlightInput(Flight flight) {
+int checkFlightInput(Flight *flight) {
 	int i, arprt_arrival_i, arprt_departure_i;
-	Flight flight_i;
+	Flight *flight_i;
 	Date tmp_date = system_date;
-	for(i = 0; i < LIM_FLIGHT_CODE && flight.code[i] != '\0'; i++) {
-		if(i < 2 && !isupper(flight.code[i])) {
+	for(i = 0; i < LIM_FLIGHT_CODE && flight->code[i] != '\0'; i++) {
+		if(i < 2 && !isupper(flight->code[i])) {
 			printf(MSG_INVALID_FLIGHT_CODE);
 			return 0;
 		}
-		else if (i == 2 && flight.code[i] == '0') {
+		else if (i == 2 && flight->code[i] == '0') {
 			printf(MSG_INVALID_FLIGHT_CODE);
 			return 0;
 		}
-		else if (i > 2 && !('0' <= flight.code[i] && flight.code[i] <= '9')) {
+		else if (i > 2 && !('0' <= flight->code[i] && flight->code[i] <= '9')) {
 				printf(MSG_INVALID_FLIGHT_CODE);
 				return 0;
 			}
 	}
 
 	for(i=0;i<flight_count;i++) {
-		flight_i = flight_store[i];
-		if(!strcmp(flight_i.code, flight.code) &&
-			compareDate(flight.departure_date, flight_i.departure_date) == 0) {
+		flight_i = &flight_store[i];
+		if(!strcmp(flight_i->code, flight->code) &&
+			compareDate(flight->departure_date, flight_i->departure_date) == 0) {
 				printf(MSG_FLIGHT_ALREADY_EXISTS);
 				return 0;
 		}
 	}
 
-	arprt_arrival_i = getAirport(flight.arrival_id);
-	arprt_departure_i = getAirport(flight.departure_id);
+	arprt_arrival_i = getAirport(flight->arrival_id);
+	arprt_departure_i = getAirport(flight->departure_id);
 	if (arprt_departure_i == -1) {
-		printf(MSG_NO_SUCH_AIRPORT_ID, flight.departure_id);
+		printf(MSG_NO_SUCH_AIRPORT_ID, flight->departure_id);
 		return 0;
 	}
 	if (arprt_arrival_i == -1) {
-		printf(MSG_NO_SUCH_AIRPORT_ID, flight.arrival_id);
+		printf(MSG_NO_SUCH_AIRPORT_ID, flight->arrival_id);
 		return 0;
 	}
 	if (flight_count == MAX_FLIGHTS) {
@@ -533,19 +533,19 @@ int checkFlightInput(Flight flight) {
 	/*if departure date is in the future
 	 *relatively to tmp_date (compareDate(...) < 0) , then it's invalid*/
 	tmp_date.year++;
-	if (compareDate(system_date, flight.departure_date) < 0 ||
-			compareDate(flight.departure_date, tmp_date) < 0)  {
+	if (compareDate(system_date, flight->departure_date) < 0 ||
+			compareDate(flight->departure_date, tmp_date) < 0)  {
 		printf(MSG_INVALID_DATE);
 		return 0;
 	}
-	if((flight.duration.hour > 12) ||
-			(flight.duration.hour == 12 && flight.duration.minute > 0)) {
+	if((flight->duration.hour > 12) ||
+			(flight->duration.hour == 12 && flight->duration.minute > 0)) {
 		printf(MSG_INVALID_DURATION);
 		return 0;
 	}
 
 	/*Max flight capacity was removed on second project*/
-	if(!(MIN_FLIGHT_CAP <= flight.capacity)) {
+	if(!(MIN_FLIGHT_CAP <= flight->capacity)) {
 		printf(MSG_INVALID_CAPACITY);
 		return 0;
 	}

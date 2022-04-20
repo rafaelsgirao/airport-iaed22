@@ -107,7 +107,7 @@ void sortAirports();
 
 void handleVCommand();
 void addFlight();
-int checkFlightInput(Flight flight);
+int checkFlightInput(Flight *flight);
 void listFlights();
 void listAirportDepartures();
 void listAirportArrivals();
