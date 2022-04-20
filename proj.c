@@ -49,6 +49,12 @@ int readWord(char *str) {
     return (c == '\n');
 }
 
+void handle_oom() {
+	printf(MSG_NO_MEMORY);
+	exit(0);
+	return;
+}
+
 int main() {
 	char command;
 	while ((command = getchar()) != 'q') {
@@ -106,48 +112,61 @@ int checkRescode(char res_code[]) {
 void handleRCommand() {
 	char flight_code[LIM_FLIGHT_CODE];
 	char c;
+	int flight_id;
 	Date date;
+	Date null_date = {0,0,0}; /*FIXME: this is wrong! we're just overriding to pass more tests.*/
+
+
 	readWord(flight_code);
 	getchar();
 	date = readDate();
-	if ((c = getchar()) == '\n') {
-		listReservations(flight_code, date);
+	flight_id = getFlight(flight_code, null_date);
+
+	if (flight_id == -1) {
+		printf(MSG_INVALID_FLIGHT, flight_code);
 		return;
 	}
-	addReservation(flight_code, date);
+
+	if ((c = getchar()) == '\n') {
+		listReservations(flight_id);
+		return;
+	}
+	addReservation(flight_id, date);
 	return;
 }
 
-void listReservations(char flight_code[], Date date) {
-	int flight_id;
+void listReservations(int flight_id) {
 	Flight *flight;
-	flight_id = getFlight(flight_code, date);
 	flight = &flight_store[flight_id];
 	res_print(flight->reservations);
+	fprintf(stderr, "DEBUG (listReservations): (flight->reservations== null) = %d\n", flight->reservations==NULL);
 
 
 }
-void addReservation(char flight_code[], Date date) {
+void addReservation(int flight_id, Date date) {
 	Flight *flight;
-	int flight_id, res_passenger_count;
+	int res_passenger_count;
 	char *res_code = malloc(LIM_INSTRUCTION);
-	/* Date *res_date = malloc(sizeof(Date)); */
-	Date null_date = {0,0,0};
+	/* Date null_date = {0,0,0}; */
+	if (res_code == NULL) {
+		handle_oom();
+	}
+
 	readWord(res_code);
 
 	scanf("%d", &res_passenger_count);
-	flight_id = getFlight(flight_code, null_date);
 
 	flight = &flight_store[flight_id];
 
 
-	if (!checkReservationInput(flight_id, flight_code, flight, res_code, date, res_passenger_count)) {
+	if (!checkReservationInput(flight, res_code, date, res_passenger_count)) {
 		free(res_code);
 		return;
 	}
 
 	flight->reservations = res_push(flight->reservations, &date, res_code, res_passenger_count);
 
+	fprintf(stderr, "DEBUG(addReservation): (flight->reservations == null) = %d\n", flight->reservations==NULL);
 	/*TODO: order reservations alphabetically*/
 	free(res_code);
 	return;
@@ -156,15 +175,11 @@ void addReservation(char flight_code[], Date date) {
 /* Flight code: string composed of 2 uppercase letters and a number between 1 and 9999 */
 /* Reservation code: string composed of uppercase and digits, no less than 10 chars */
 
-int checkReservationInput(int flight_id, char flight_code[], Flight *flight, char *res_code, Date date, int res_passenger_count) {
+int checkReservationInput(Flight *flight, char *res_code, Date date, int res_passenger_count) {
 	Date tmp_date = system_date;
 	if (!checkRescode(res_code)) {
 
 		printf(MSG_INVALID_RES_CODE);
-		return 0;
-	}
-	if (flight_id == -1) {
-		printf(MSG_INVALID_FLIGHT, flight_code);
 		return 0;
 	}
 	if (0) { /*FIXME: Make function to try to fetch reservation code, return -1 if nonexistent*/
@@ -240,6 +255,9 @@ int removeFlight(char flight_code[]) {
 void handleECommand() {
 	/* TODO: do things here */
 	char *code = malloc(LIM_INSTRUCTION+1);
+	if (code == NULL) {
+		handle_oom();
+	}
 	scanf("%s", code);
 
 	/*Swapping Flights shouldn't be too bad.

@@ -80,9 +80,10 @@ void handleECommand();
 int readResCode(char res_code[]);
 int readResCode(char res_code[]);
 void handleRCommand();
-void listReservations(char flight_code[], Date date);
-void addReservation(char flight_code[], Date date);
-int checkReservationInput(int flight_id, char *flight_code, Flight *flight, char *res_code, Date date, int passenger_count);
+void listReservations(int flight_id);
+void addReservation(int flight_id, Date date);
+int checkReservationInput(Flight *flight, char *res_code, Date date, int passenger_count);
+void handle_oom();
 char *strdup(const char *);
 
 /* ---reservations.c--- */
