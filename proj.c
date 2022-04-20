@@ -484,6 +484,20 @@ void addFlight() {
 	return;
 }
 
+int checkFlightcode(char code[]) {
+	for(i = 0; i < LIM_FLIGHT_CODE && code[i] != '\0'; i++) {
+		if(i < 2 && !isupper(code[i])) {
+			return 0;
+		}
+		else if (i == 2 && code[i] == '0') {
+			return 0;
+		}
+		else if (i > 2 && !('0' <= code[i] && code[i] <= '9')) {
+				return 0;
+			}
+	}
+	return 1;
+}
 /*
  Checks input feeded into addFlight() for sanity checks.
 */
@@ -491,19 +505,9 @@ int checkFlightInput(Flight *flight) {
 	int i, arprt_arrival_i, arprt_departure_i;
 	Flight *flight_i;
 	Date tmp_date = system_date;
-	for(i = 0; i < LIM_FLIGHT_CODE && flight->code[i] != '\0'; i++) {
-		if(i < 2 && !isupper(flight->code[i])) {
-			printf(MSG_INVALID_FLIGHT_CODE);
-			return 0;
-		}
-		else if (i == 2 && flight->code[i] == '0') {
-			printf(MSG_INVALID_FLIGHT_CODE);
-			return 0;
-		}
-		else if (i > 2 && !('0' <= flight->code[i] && flight->code[i] <= '9')) {
-				printf(MSG_INVALID_FLIGHT_CODE);
-				return 0;
-			}
+
+	if (!checkFlightcode(flight->code)) {
+		printf(MSG_INVALID_FLIGHT_CODE);
 	}
 
 	for(i=0;i<flight_count;i++) {
