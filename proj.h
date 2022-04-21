@@ -81,7 +81,6 @@ char *strdup(const char *);
 
 /* ---reservations.c--- */
 
-Reservation * res_pop(Reservation * head);
 Reservation * res_create(Date *res_date, char *res_code, int res_passenger_count);
 Reservation* res_insert(Reservation *head, Reservation *new_node);
 Reservation * res_destroy(Reservation * head);
