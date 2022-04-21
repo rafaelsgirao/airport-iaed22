@@ -12,6 +12,8 @@
 #define MAX_FLIGHTS 30000
 #define MIN_FLIGHT_CAP 10
 #define LIM_INSTRUCTION 65535
+#define RES_PRIME 15013
+#define RES_TABLE_SIZE 19213
 
 /*-------------------*/
 /*-----Structures----*/

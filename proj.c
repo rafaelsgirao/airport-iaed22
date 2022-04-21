@@ -55,6 +55,7 @@ void handle_oom() {
 	return;
 }
 
+
 int main() {
 	char command;
 	while ((command = getchar()) != 'q') {
@@ -230,6 +231,7 @@ int removeFlight(char flight_code[]) {
 		fprintf(stderr, "Got inside while loop, flight_id=%d\n", flight_id);
 		/*Temporarily save copy to access airports*/
 		flight = flight_store[flight_id];
+		res_destroy(flight.reservations);
 		/*Shift all flights to the right of removed flight to the left*/
 		i = flight_id;
 		flight_count--;
@@ -259,18 +261,25 @@ int removeFlight(char flight_code[]) {
 void handleECommand() {
 	/* TODO: do things here */
 	char *code = malloc(LIM_INSTRUCTION+1);
+	Date null_date = {0,0,0};
+	int found = 0;
 	if (code == NULL) {
 		handle_oom();
 	}
 	scanf("%s", code);
 
-	/*Swapping Flights shouldn't be too bad.
-	 * At time of writing sizeof(Flight)=136 bytes
-	 * */
 	/*Assume a res code cannot be the same as a flight code*/
-	if (!(removeReservation(code) || removeFlight(code))) {
-		printf(MSG_NOT_FOUND);
+
+	if ((getFlight(code, null_date) != -1)) {
+		removeFlight(code);
+		free(code);
+		return;
 	}
+	if (removeReservation(code)) {
+		free(code);
+		return;
+	};
+	printf(MSG_NOT_FOUND);
 	free(code);
 	return;
 
@@ -485,6 +494,7 @@ void addFlight() {
 }
 
 int checkFlightcode(char code[]) {
+	int i;
 	for(i = 0; i < LIM_FLIGHT_CODE && code[i] != '\0'; i++) {
 		if(i < 2 && !isupper(code[i])) {
 			return 0;
@@ -498,6 +508,7 @@ int checkFlightcode(char code[]) {
 	}
 	return 1;
 }
+
 /*
  Checks input feeded into addFlight() for sanity checks.
 */
