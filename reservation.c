@@ -13,22 +13,20 @@ extern Date system_date;
 /*Create a new Reservation.*/
 Reservation *res_create(Date *res_date, char *res_code, int res_passenger_count ) {
 	Reservation *new_node = malloc(sizeof(Reservation));
-	Resref *new_ref = malloc(sizeof(Resref));
 	if (new_node == NULL) {
 		handle_oom();
 	}
-	new_node->date = res_date;
+	new_node->date = *res_date;
 	new_node->code = strdup(res_code);
 	new_node->passenger_count = res_passenger_count;
 	new_node->next = NULL;
-	new_node->previous = NULL;
 	if (new_node->code == NULL) {
 		handle_oom();
 		/* free(new_head); */
 		/* return NULL; */
 	}
 
-	return new_ref;
+	return new_node;
 }
 
 /*Push an existing Reservation into the list, becoming the new head.*/
@@ -71,10 +69,13 @@ Reservation* res_insert(Reservation *head, Reservation *new_node) {
 	return head;
 }
 
-void res_print(Reservation *head) {
+void res_print(Reservation *head, Date date) {
 	while (head != NULL) {
-		printf("%s %d\n", head->code, head->passenger_count);
-		head = head->next;
+		if (compareDate(date, head->date) == 0) {
+			printf("%s %d\n", head->code, head->passenger_count);
+			head = head->next;
+
+		}
 	}
 	return;
 }

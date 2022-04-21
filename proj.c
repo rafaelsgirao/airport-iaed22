@@ -129,17 +129,17 @@ void handleRCommand() {
 	}
 
 	if ((c = getchar()) == '\n') {
-		listReservations(flight_id);
+		listReservations(flight_id, date);
 		return;
 	}
 	addReservation(flight_id, date);
 	return;
 }
 
-void listReservations(int flight_id) {
+void listReservations(int flight_id, Date date) {
 	Flight *flight;
 	flight = &flight_store[flight_id];
-	res_print(flight->reservations);
+	res_print(flight->reservations, date);
 	fprintf(stderr, "DEBUG (listReservations): (flight->reservations== null) = %d\n", flight->reservations==NULL);
 
 
@@ -207,6 +207,11 @@ int checkReservationInput(Flight *flight, char *res_code, Date date, int res_pas
 		printf(MSG_INVALID_DATE);
 		return 0;
 	}
+	/* printf("DATE DEBUG(checkResInput): system_date = '"); */
+	/* printDate(system_date); */
+	/* printf("' , date = '"); */
+	/* printDate(date); */
+	/* printf("'\n"); */
 	if (res_passenger_count <= 0) {
 		printf(MSG_INVALID_PASSENGER_COUNT);
 		return 0;

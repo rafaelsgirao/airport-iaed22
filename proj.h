@@ -48,7 +48,7 @@ typedef struct {
 
 typedef struct reserv {
 	/* int *flight_id; Flight's index on flight_store*/
-	Date *date;
+	Date date;
 	char *code;
 	int passenger_count;
 	struct reserv *next;
@@ -82,7 +82,7 @@ void handleECommand();
 int readResCode(char res_code[]);
 int readResCode(char res_code[]);
 void handleRCommand();
-void listReservations(int flight_id);
+void listReservations(int flight_id, Date date);
 void addReservation(int flight_id, Date date);
 int checkReservationInput(Flight *flight, char *res_code, Date date, int passenger_count);
 void handle_oom();
@@ -98,7 +98,7 @@ Reservation* res_insert(Reservation *head, Reservation *new_node);
 /* frees all memory associated with the list and returns NULL */
 Reservation * res_destroy(Reservation * head);
 /* print the elements of the integers in the list, one per line */
-void res_print(Reservation * head);
+void res_print(Reservation * head, Date date);
 
 /* ---Prototypes made on first project--- */
 void addAirport();
