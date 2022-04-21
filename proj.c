@@ -169,9 +169,11 @@ void addReservation(int flight_id, Date date) {
 	new_res = res_create(&date, res_code, res_passenger_count);
 
 	flight->reservations = res_insert(flight->reservations, new_res);
+
 	if (flight->reservations == NULL) {
 		handle_oom();
 	}
+	flight->passenger_count += res_passenger_count;
 
 	free(res_code);
 	return;
@@ -262,7 +264,6 @@ void handleECommand() {
 	/* TODO: do things here */
 	char *code = malloc(LIM_INSTRUCTION+1);
 	Date null_date = {0,0,0};
-	int found = 0;
 	if (code == NULL) {
 		handle_oom();
 	}
