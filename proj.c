@@ -3,11 +3,6 @@
 	2nd IAED Project 2021/2022
 */
 
-/*TODO:
- * - run `indent` according to guidelines.pdf
- * - Run `lizard`, check for errors
- * - Comments
- */
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -49,6 +44,7 @@ int readWord(char *str) {
     return (c == '\n');
 }
 
+/*Safe exit if we run out of memory.*/
 void handle_oom() {
 	printf(MSG_NO_MEMORY);
 	exit(0);
@@ -89,6 +85,7 @@ int main() {
 	return 0;
 }
 
+/*Checks if a reservation code is valid.*/
 int checkRescode(char res_code[]) {
 	char c;
 	/* char res_ptr = res_code; */
@@ -108,6 +105,7 @@ int checkRescode(char res_code[]) {
 	return 1;
 }
 
+/*Responsible for handling 'R' command.*/
 void handleRCommand() {
 	char flight_code[LIM_FLIGHT_CODE];
 	char c;
@@ -134,12 +132,15 @@ void handleRCommand() {
 	return;
 }
 
+/* Lists all reservations of a flight in a certain date. */
 void listReservations(int flight_id, Date date) {
 	Flight *flight;
 	flight = &flight_store[flight_id];
 	res_print(flight->reservations, date);
 }
 
+
+/* Adds a reservation to the flight's reservations, alphabetically. */
 void addReservation(int flight_id, Date date) {
 	Flight *flight;
 	Reservation *new_res;
@@ -178,6 +179,7 @@ void addReservation(int flight_id, Date date) {
 /* Flight code: string composed of 2 uppercase letters and a number between 1 and 9999 */
 /* Reservation code: string composed of uppercase and digits, no less than 10 chars */
 
+/*Checks input of 'r' command (when creating).*/
 int checkReservationInput(Flight *flight, char *res_code, Date date, int res_passenger_count) {
 	Date tmp_date = system_date;
 	if (!checkRescode(res_code)) {
@@ -195,7 +197,6 @@ int checkReservationInput(Flight *flight, char *res_code, Date date, int res_pas
 	}
 
 	tmp_date.year++;
-	/*TODO: see if we can put this in a function. checkFlightInput does the same*/
 	if (compareDate(system_date, date) < 0 ||
 			compareDate(date, tmp_date) < 0) {
 		printf(MSG_INVALID_DATE);
@@ -213,6 +214,7 @@ int checkReservationInput(Flight *flight, char *res_code, Date date, int res_pas
 	return 1;
 }
 
+/*Removes a reservation by code.*/
 int removeReservation(char res_code[]) {
 	/* FIXME */
 	fprintf(stderr, res_code);
@@ -220,6 +222,7 @@ int removeReservation(char res_code[]) {
 
 }
 
+/* Removes a flight from the flight store, and its reservation. */
 int removeFlight(char flight_code[]) {
 	int flight_id, i, arprt_id;
 	Flight flight;
@@ -257,9 +260,8 @@ int removeFlight(char flight_code[]) {
 
 }
 
-
+/* Remove a reservation or flight. Handles 'e' command. */
 void handleECommand() {
-	/* TODO: do things here */
 	char *code = malloc(LIM_INSTRUCTION+1);
 	Date null_date = {0,0,0};
 	if (code == NULL) {
@@ -623,7 +625,6 @@ void listAirportDepartures() {
  * Handles 'c' command.
  * Lists an airport's arrivals by ascending date.
  * */
-/*TODO: if time, merge listAirportArrivals and listAirportDepartures*/
 void listAirportArrivals() {
 	char arprt_id[LIM_AIRPORT_ID];
 	int i, arprt_i, n;
