@@ -96,13 +96,11 @@ int checkRescode(char res_code[]) {
 	int len = strlen(res_code);
 	if (len+1<10) {
 		printf("%s", res_code);
-		fprintf(stderr, "failed at strlen %d\n", len);
 		return 0;
 	}
 	for (i=0; i < len ;i++) {
 		c = res_code[i];
 		if (!(('0' <= c && c <= '9') || ('A' <= c && c <= 'Z'))) {
-			fprintf(stderr, "failed at char %c\n", c);
 			return 0;
 		}
 	}
@@ -115,7 +113,7 @@ void handleRCommand() {
 	char c;
 	int flight_id;
 	Date date;
-	Date null_date = {0,0,0}; /*FIXME: this is wrong! we're just overriding to pass more tests.*/
+	Date null_date = {0,0,0}; /*FIXME: this is wrong. just overriding to pass more tests.*/
 
 
 	readWord(flight_code);
@@ -140,10 +138,8 @@ void listReservations(int flight_id, Date date) {
 	Flight *flight;
 	flight = &flight_store[flight_id];
 	res_print(flight->reservations, date);
-	fprintf(stderr, "DEBUG (listReservations): (flight->reservations== null) = %d\n", flight->reservations==NULL);
-
-
 }
+
 void addReservation(int flight_id, Date date) {
 	Flight *flight;
 	Reservation *new_res;
@@ -195,8 +191,6 @@ int checkReservationInput(Flight *flight, char *res_code, Date date, int res_pas
 	}
 	if (flight->passenger_count == flight->capacity || flight->passenger_count + res_passenger_count > flight->capacity) {
 		printf(MSG_TOO_MANY_PASSENGERS);
-		fprintf(stderr, "flight->passenger_count = %d, flight->capacity=%d\n", flight->passenger_count, flight->capacity);
-		fprintf(stderr, "res_passenger_count = %d\n", res_passenger_count);
 		return 0;
 	}
 
@@ -221,7 +215,7 @@ int checkReservationInput(Flight *flight, char *res_code, Date date, int res_pas
 
 int removeReservation(char res_code[]) {
 	/* FIXME */
-	fprintf(stderr, "FIXME: %s\n", res_code);
+	fprintf(stderr, res_code);
 	return 0;
 
 }
@@ -235,7 +229,6 @@ int removeFlight(char flight_code[]) {
 
 	/*Do loop for every flight with the same code*/
 	while (flight_id != -1) {
-		fprintf(stderr, "Got inside while loop, flight_id=%d\n", flight_id);
 		/*Temporarily save copy to access airports*/
 		flight = flight_store[flight_id];
 		res_destroy(flight.reservations);
@@ -404,8 +397,6 @@ int getFlight(char flight_code[], Date date) {
 		/*If date is 0,0,0 then we intentionally ignore it*/
 		if (!strcmp(flight_code, flight->code) &&
 				(compareDate(date, flight->departure_date) == 0 || compareDate(null_date, date) == 0) ) {
-		/* if (!strcmp(flight_code, flight->code)) { */
-			/* fprintf(stderr, "got flight, %d\n", date.day); */
 			return i;
 		}
 	}

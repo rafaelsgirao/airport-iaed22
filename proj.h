@@ -35,15 +35,6 @@ typedef struct {
 	char city[LIM_CITY_NAME];
 
 	int departure_count;
-	/*int arrival_count, departure_count;*/
-	/*Array of ints to access flights in the flight store*/
-	/*int arrivals[MAX_FLIGHTS];*/
-	/*int departures[MAX_FLIGHTS];*/
-
-	/*These are 1 if values have been added to arrays above since last sort, 0 otherwise*/
-	/*This way sorting only occurs if dirty is 1 and if a function is going to use the array*/
-	/* int arrival_dirty; */
-	/* int departure_dirty; */
 } Airport;
 
 typedef struct reserv {
@@ -90,14 +81,10 @@ char *strdup(const char *);
 
 /* ---reservations.c--- */
 
-/* remove the first element of the list and return the new head */
 Reservation * res_pop(Reservation * head);
-/* add integer e as the first element of the list and return the new head */
 Reservation * res_create(Date *res_date, char *res_code, int res_passenger_count);
 Reservation* res_insert(Reservation *head, Reservation *new_node);
-/* frees all memory associated with the list and returns NULL */
 Reservation * res_destroy(Reservation * head);
-/* print the elements of the integers in the list, one per line */
 void res_print(Reservation * head, Date date);
 
 /* ---Prototypes made on first project--- */
